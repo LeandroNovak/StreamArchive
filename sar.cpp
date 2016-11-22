@@ -69,12 +69,12 @@ using namespace std;
 #define END_DIR_AREA "<ldir!>"
 #define BEGIN_DIR "<l?>"
 #define END_DIR "<l!>"
-#define BEGIN_FILE_AREA
+#define BEGIN_FILE_AREA "<sarf?>"
 
 struct header {
     char type[4];               // !SAR
     char name[120];             // filename.sar
-    char size[4];               // filesize
+    //char size[4];               // filesize
 };
 
 string path_list;
@@ -101,8 +101,8 @@ int listDirectories(const char *path)
         if (entry->d_name[0] != '.') {
             string newpath = string(path) + "/" + string(entry->d_name);
             
-            path_list += BEGIN_DELIMITER;
-            path_list += newpath + END_DELIMITER;
+            path_list += "@";
+            path_list += newpath + "#";
             
             cout << newpath << endl;
             // verificar se é um arquivo, se for, abrir e anexar ao destino 
