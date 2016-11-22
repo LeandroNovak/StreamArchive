@@ -44,6 +44,14 @@ using namespace std;
 #define NOT_A_DIRECTORY 1
 #define NOT_A_VALID_SAR_FILE 2
 #define FAILURE 3
+#define SEPARATOR 0x444C
+
+struct header {
+    // File prefix
+    char[] type = "SAR";
+    // Size in bytes
+    unsigned long int size;
+};
 
 
 
