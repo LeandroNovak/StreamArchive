@@ -31,6 +31,26 @@ SEE ALSO
    tar(5)
 */
 
+/*
+__Ideia de estrutura de um arquivo sar__
+header
+
+<ldir?>
+<l?>
+diretorios
+<l!>
+<ldir!>
+
+<sarf?>
+<sard?>
+diretorio_do arquivo_com_nome_e_extensão
+<sard!>
+<file?>
+conteudo_do_arquivo
+<file!>
+<sarf!>
+*/
+
 #include <iostream>
 #include <cstring>
 #include <cstdio>
@@ -40,47 +60,63 @@ SEE ALSO
 #include <dirent.h>
 using namespace std;
 
-struct header {
-    // File prefix
-    char[] type = "SAR";
-    // Size in bytes
-    unsigned long int size;
-};
-
 #define SUCESS 0                // execução bem sucedida
 #define NOT_A_DIRECTORY 1       // argumento não é um diretório
 #define NOT_A_VALID_SAR_FILE 2  // argumento não é um arquivo sar válido
 #define FAILURE 3               // caso genérico para execução mal sucedida
 
-struct header_sar {
-    char type[4];               // %SAR
+#define BEGIN_DIR_AREA "<ldir?>"
+#define END_DIR_AREA "<ldir!>"
+#define BEGIN_DIR "<l?>"
+#define END_DIR "<l!>"
+#define BEGIN_FILE_AREA
+
+struct header {
+    char type[4];               // !SAR
     char name[120];             // filename.sar
     char size[4];               // filesize
-} sar_header;
+};
 
-int isRegularFile(const char *path)
+string path_list;
+
+int isDirectory(const char *path) 
 {
     struct stat path_stat;
     stat(path, &path_stat);
-    return S_ISREG(path_stat.st_mode);
+    return !(S_ISDIR(path_stat.st_mode));
 }
 
-int listDirectories(const char *caminho)
+int listDirectories(const char *path)
 {
     DIR *dir;
     struct dirent *entry;
+    struct stat info;
 
-    dir = opendir(caminho);
-    if (dir != NULL)
-    {
-        while (entry = readdir(dir))
-        {
-            puts(entry->d_name);
-        }
-        closedir(dir);
-    }
-    else
+    dir = opendir(path);
+    if (!dir)
         return 1;
+
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_name[0] != '.') {
+            string newpath = string(path) + "/" + string(entry->d_name);
+            
+            path_list += BEGIN_DELIMITER;
+            path_list += newpath + END_DELIMITER;
+            
+            cout << newpath << endl;
+            // verificar se é um arquivo, se for, abrir e anexar ao destino 
+            // e dar append no endereço.
+            
+            stat(newpath.c_str(), &info);
+            
+            if (S_ISDIR(info.st_mode)) {
+                listDirectories((char *)newpath.c_str());
+            }
+        }
+    }
+
+    closedir(dir);
     return 0;
 }
 
@@ -106,9 +142,11 @@ int main(int argc, char** argv)
             cout << "arquivo: " << argv[2] << endl;
         }
         
-        if (listDirectories(argv[2]) != 0)
+        if (isDirectory(argv[2]))
             return NOT_A_DIRECTORY;
-        cout << isRegularFile(argv[2]) << endl;
+        else
+            listDirectories(argv[2]);
+        
     }
 
     else if (argc == 2)
@@ -121,7 +159,18 @@ int main(int argc, char** argv)
     else 
         return FAILURE;
 
+    cout << endl;
+    cout << path_list << endl << endl;
     cout << endl << endl;
-    
+
+    string bel = "belzebu";
+    string pastel = "O_pastel_do_belzebu_eh_mais_barato";
+    unsigned position = pastel.find("belzebu");
+    cout << "aqui: " << position << endl;
+    string new1 = pastel.substr(position + bel.size(), pastel.size());
+    cout << "éoq? " << new1 << endl;
+
+
+
     return SUCESS;
 }
