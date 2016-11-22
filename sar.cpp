@@ -40,6 +40,7 @@ SEE ALSO
 #include <dirent.h>
 using namespace std;
 
+<<<<<<< HEAD
 #define SUCESS 0
 #define NOT_A_DIRECTORY 1
 #define NOT_A_VALID_SAR_FILE 2
@@ -53,7 +54,18 @@ struct header {
     unsigned long int size;
 };
 
+=======
+#define SUCESS 0                // execução bem sucedida
+#define NOT_A_DIRECTORY 1       // argumento não é um diretório
+#define NOT_A_VALID_SAR_FILE 2  // argumento não é um arquivo sar válido
+#define FAILURE 3               // caso genérico para execução mal sucedida
+>>>>>>> 890ea92c3ab74a9ce2ac7249e62158a328f400de
 
+struct header_sar {
+    char type[4];               // %SAR
+    char name[120];             // filename.sar
+    char size[4];               // filesize
+} sar_header;
 
 int isRegularFile(const char *path)
 {
@@ -64,15 +76,17 @@ int isRegularFile(const char *path)
 
 int listDirectories(const char *caminho)
 {
-    DIR *dp;
-    struct dirent *ep;
+    DIR *dir;
+    struct dirent *entry;
 
-    dp = opendir(caminho);
-    if (dp != NULL)
+    dir = opendir(caminho);
+    if (dir != NULL)
     {
-        while (ep = readdir(dp)) 
-            puts(ep->d_name);
-        (void) closedir(dp);
+        while (entry = readdir(dir))
+        {
+            puts(entry->d_name);
+        }
+        closedir(dir);
     }
     else
         return 1;
