@@ -40,13 +40,6 @@ SEE ALSO
 #include <dirent.h>
 using namespace std;
 
-<<<<<<< HEAD
-#define SUCESS 0
-#define NOT_A_DIRECTORY 1
-#define NOT_A_VALID_SAR_FILE 2
-#define FAILURE 3
-#define SEPARATOR 0x444C
-
 struct header {
     // File prefix
     char[] type = "SAR";
@@ -54,12 +47,10 @@ struct header {
     unsigned long int size;
 };
 
-=======
 #define SUCESS 0                // execução bem sucedida
 #define NOT_A_DIRECTORY 1       // argumento não é um diretório
 #define NOT_A_VALID_SAR_FILE 2  // argumento não é um arquivo sar válido
 #define FAILURE 3               // caso genérico para execução mal sucedida
->>>>>>> 890ea92c3ab74a9ce2ac7249e62158a328f400de
 
 struct header_sar {
     char type[4];               // %SAR
