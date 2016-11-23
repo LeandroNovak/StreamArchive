@@ -72,12 +72,35 @@ using namespace std;
 #define BEGIN_FILE_AREA "<sarf?>"
 
 struct header {
-    char type[4];               // !SAR
-    char name[120];             // filename.sar
-    //char size[4];               // filesize
+    char type[4];      // !SAR
+    char name[120];    // filename.sar
+    //char size[4];    // filesize
 };
 
 string path_list;
+
+void append(const char *source)
+{
+    FILE* dest_file_sar = fopen("arquivo.sar", "ab");
+    FILE* source_file   = fopen(source, "rb");
+    
+    char letter;
+
+    while (letter != EOF);
+    {
+        letter = fgetc(source_file);
+        fputc(letter, dest_file_sar);
+    }
+
+    // while(!feof(source_file))
+    // {
+    //     fread(&letter, sizeof(char), 1, source_file);
+    //     fwrite(&letter, sizeof(char), 1, dest_file_sar);
+    // }
+
+    fclose(dest_file_sar);
+    fclose(source_file);	
+}
 
 int isDirectory(const char *path) 
 {
@@ -112,6 +135,9 @@ int listDirectories(const char *path)
             
             if (S_ISDIR(info.st_mode)) {
                 listDirectories((char *)newpath.c_str());
+            }
+			else {
+                append(entry->d_name);
             }
         }
     }
