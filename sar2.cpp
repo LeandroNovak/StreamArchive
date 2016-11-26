@@ -53,26 +53,16 @@ conteudo_do_arquivo
 
 #include <iostream>
 #include <fstream>
-<<<<<<< HEAD
 //#include <string>
 #include <cstring>
 //#include <cstdio>
-=======
-#include <string>
-#include <cstring>
-#include <cstdio>
->>>>>>> f45414d24e867ad956566db18924ea370dc162a4
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-<<<<<<< HEAD
 #include <vector>
 using namespace std;
-=======
-using namespace std;
-#include <vector>
->>>>>>> f45414d24e867ad956566db18924ea370dc162a4
+
 
 #define SUCESS 0                // execução bem sucedida
 #define NOT_A_DIRECTORY 1       // argumento não é um diretório
@@ -218,11 +208,7 @@ int main(int argc, char** argv)
         char offset[] = "ABCD";
         outputFile << "!SAR" << std::endl;
         for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-<<<<<<< HEAD
             outputFile << *i << "\n";
-=======
-            outputFile << *i << "\n#" << offset << "\n";
->>>>>>> f45414d24e867ad956566db18924ea370dc162a4
     }
     outputFile.close();
 
@@ -240,25 +226,9 @@ int main(int argc, char** argv)
             //getline(inputFile, str);
             inputFile >> str;
             //if ()
-<<<<<<< HEAD
             cout << str << endl;
         }
     }
     inputFile.close();
-=======
-            int size = inputFile.tellg();
-            cout << size << endl;
-        }
-    }
-    inputFile.close();
-
-    // string bel = "belzebu";
-    // string pastel = "O_pastel_do_belzebu_eh_mais_barato";
-    // unsigned position = pastel.find("belzebu");
-    // cout << "aqui: " << position << endl;
-    // string new1 = pastel.substr(position + bel.size(), pastel.size());
-    // cout << "ehoq? " << new1 << endl;
-
->>>>>>> f45414d24e867ad956566db18924ea370dc162a4
     return SUCESS;
 }
