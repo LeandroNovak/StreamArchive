@@ -63,7 +63,9 @@ conteudo_do_arquivo
 #include <vector>
 using namespace std;
 
-
+/////////////////////////////////////////////////////////////////////
+/// DEFINES
+/////////////////////////////////////////////////////////////////////
 #define SUCCESS 0               // execução bem sucedida
 #define NOT_A_DIRECTORY 1       // argumento não é um diretório
 #define NOT_A_SAR_FILE 2        // argumento não é um arquivo sar válido
@@ -78,18 +80,19 @@ using namespace std;
 #define END_DIR "<l!>"
 #define BEGIN_FILE_AREA "<sarf?>"
 
-// struct header {
-//     char type[4];      // !SAR
-//     char name[120];    // filename.sar
-//     //char size[4];    // filesize
-// };
 
-//string path_list;
+/////////////////////////////////////////////////////////////////////
+/// GLOBAL DATA AREA
+/////////////////////////////////////////////////////////////////////
 vector<string> path_list;
 std::ifstream inputFile;
 std::ofstream outputFile;
 
-void append(const char *source)
+
+/////////////////////////////////////////////////////////////////////
+/// Inserts the file at the end of the sar file
+/////////////////////////////////////////////////////////////////////
+void append(const char *source) 
 {
     FILE* dest_file_sar = fopen("arquivo.sar", "ab");
     FILE* source_file   = fopen(source, "rb");
@@ -112,6 +115,9 @@ void append(const char *source)
     fclose(source_file);	
 }
 
+/////////////////////////////////////////////////////////////////////
+// Returns true if the path is a directory, otherwise returns false
+/////////////////////////////////////////////////////////////////////
 int is_dir(const char *path) 
 {
     struct stat path_stat;
@@ -119,6 +125,9 @@ int is_dir(const char *path)
     return (S_ISDIR(path_stat.st_mode));
 }
 
+/////////////////////////////////////////////////////////////////////
+/// Returns true if the file is a sar file, otherwise returns false
+/////////////////////////////////////////////////////////////////////
 int is_sar(const char *path)
 {
     inputFile.open(path, ios::in | std::ofstream::binary);
@@ -136,6 +145,9 @@ int is_sar(const char *path)
     return FALSE;
 }
 
+/////////////////////////////////////////////////////////////////////
+/// Generates the directories list and saves them
+/////////////////////////////////////////////////////////////////////
 int get_dir(const char *path)
 {
     DIR *dir;
@@ -144,7 +156,7 @@ int get_dir(const char *path)
 
     dir = opendir(path);
     if (!dir)
-        return 1;
+        return TRUE;
 
     while ((entry = readdir(dir)) != NULL)
     {
@@ -162,26 +174,38 @@ int get_dir(const char *path)
     }
 
     closedir(dir);
-    return 0;
+    return FALSE;
 }
 
+/////////////////////////////////////////////////////////////////////
+/// compresses the files in a new sar file
+/////////////////////////////////////////////////////////////////////
 int compress_files(const char *path)
 {
-    return 0; 
+    return FALSE; 
 }
 
+/////////////////////////////////////////////////////////////////////
+/// extract files from sar file
+/////////////////////////////////////////////////////////////////////
 int extract_files(const char *path)
 {
 
-    return 0;
+    return FALSE;
 }
 
+/////////////////////////////////////////////////////////////////////
+/// list the files within the sar file
+/////////////////////////////////////////////////////////////////////
 int list_files(const char *path)
 {
 
-    return 0; 
+    return FALSE; 
 }
 
+/////////////////////////////////////////////////////////////////////
+/// Check arguments
+/////////////////////////////////////////////////////////////////////
 int check_args(int argc, char* argv[])
 {    
     if (argc == 3)
@@ -241,7 +265,8 @@ int check_args(int argc, char* argv[])
 
 int main(int argc, char** argv)
 {
-    cout << check_args(argc, argv) << endl;
+    //cout << check_args(argc, argv) << endl;
+    cout << FALSE << endl;
     
     // cout << "oloco" << check_args(argc, argv) << endl;
     // cout << endl;
