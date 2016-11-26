@@ -1,32 +1,26 @@
 /*
 NAME
-   sar - cria e extrai uma estrutura de diret√≥rios em um arquivo
-
+   sar - cria e extrai uma estrutura de diretÛrios em um arquivo
 SYNOPSIS
-    sar -c diret√≥rio
+    sar -c diretÛrio
     sar [-e|-l] arquivo_sar
-
 DESCRIPTION
- -c diret√≥rio
-   Com a op√ß√£o -c, especifica-se um diret√≥rio e o programa cria um arquivo
-   chamado nome.sar, contendo todos os arquivos e sub-diret√≥rios contidos no diret√≥rio indicado.
-
+ -c diretÛrio
+   Com a opÁ„o -c, especifica-se um diretÛrio e o programa cria um arquivo
+   chamado nome.sar, contendo todos os arquivos e sub-diretÛrios contidos no diretÛrio indicado.
  -e arquivo_sar
-   A op√ß√£o -e indica a extra√ß√£o de arquivos e, neste caso, indica-se um arquivo 
-   com extens√£o .sar. Toda a hierarquia de diret√≥rios e arquivos contidos no arquivo
-   s√£o extra√≠dos.
-
+   A opÁ„o -e indica a extraÁ„o de arquivos e, neste caso, indica-se um arquivo 
+   com extens„o .sar. Toda a hierarquia de diretÛrios e arquivos contidos no arquivo
+   s„o extraÌdos.
  -l arquivo_sar
-   A op√ß√£o de listagem, indicada por -l, usa um arquivo com extens√£o .sar e
+   A opÁ„o de listagem, indicada por -l, usa um arquivo com extens„o .sar e
    apresenta na tela a lista de arquivos nele armazenados, incluindo a estrutura
-   de diret√≥rios.
-
+   de diretÛrios.
 RETURN CODES
   sar produz os seguintes valores de retorno:
-   0: execu√ß√£o bem sucedida
-   1: o argumento passado na cria√ß√£o n√£o √© um diret√≥rio
-   2: o argumento passado na listagem ou extra√ß√£o n√£o √© um arquivo .sar v√°lido
-
+   0: execuÁ„o bem sucedida
+   1: o argumento passado na criaÁ„o n„o È um diretÛrio
+   2: o argumento passado na listagem ou extraÁ„o n„o È um arquivo .sar v·lido
 SEE ALSO
    tar(5)
 */
@@ -34,16 +28,14 @@ SEE ALSO
 /*
 __Ideia de estrutura de um arquivo sar__
 header
-
 <ldir?>
 <l?>
 diretorios
 <l!>
 <ldir!>
-
 <sarf?>
 <sard?>
-diretorio_do arquivo_com_nome_e_extens√£o
+diretorio_do arquivo_com_nome_e_extens„o
 <sard!>
 <file?>
 conteudo_do_arquivo
@@ -60,10 +52,10 @@ conteudo_do_arquivo
 #include <dirent.h>
 using namespace std;
 
-#define SUCESS 0                // execu√ß√£o bem sucedida
-#define NOT_A_DIRECTORY 1       // argumento n√£o √© um diret√≥rio
-#define NOT_A_VALID_SAR_FILE 2  // argumento n√£o √© um arquivo sar v√°lido
-#define FAILURE 3               // caso gen√©rico para execu√ß√£o mal sucedida
+#define SUCESS 0                // execuÁ„o bem sucedida
+#define NOT_A_DIRECTORY 1       // argumento n„o È um diretÛrio
+#define NOT_A_VALID_SAR_FILE 2  // argumento n„o È um arquivo sar v·lido
+#define FAILURE 3               // caso genÈrico para execuÁ„o mal sucedida
 
 #define BEGIN_DIR_AREA "<ldir?>"
 #define END_DIR_AREA "<ldir!>"
@@ -128,8 +120,8 @@ int listDirectories(const char *path)
             path_list += newpath + "#";
             
             cout << newpath << endl;
-            // verificar se √© um arquivo, se for, abrir e anexar ao destino 
-            // e dar append no endere√ßo.
+            // verificar se È um arquivo, se for, abrir e anexar ao destino 
+            // e dar append no endereÁo.
             
             stat(newpath.c_str(), &info);
             
@@ -194,7 +186,7 @@ int main(int argc, char** argv)
     unsigned position = pastel.find("belzebu");
     cout << "aqui: " << position << endl;
     string new1 = pastel.substr(position + bel.size(), pastel.size());
-    cout << "√©oq? " << new1 << endl;
+    cout << "Èoq? " << new1 << endl;
 
 
 
