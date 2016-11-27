@@ -27,7 +27,6 @@
         tar(5) 
         https://www.youtube.com/watch?v=w9l8kLPQ39c
 
-6. RUN and MAKE files
-    * MAKE: compiles the cpp file.
-    * RUN: compiles and executes the cpp file.
+6. Make file
+    * compiles the sar.cpp file generating a sar executable.
 

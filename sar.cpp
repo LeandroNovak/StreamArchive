@@ -1,107 +1,121 @@
 /*
 NAME
-   sar - cria e extrai uma estrutura de diretÛrios em um arquivo
+   sar - cria e extrai uma estrutura de diret√≥rios em um arquivo
+
 SYNOPSIS
-    sar -c diretÛrio
+    sar -c diret√≥rio
     sar [-e|-l] arquivo_sar
+
 DESCRIPTION
- -c diretÛrio
-   Com a opÁ„o -c, especifica-se um diretÛrio e o programa cria um arquivo
-   chamado nome.sar, contendo todos os arquivos e sub-diretÛrios contidos no diretÛrio indicado.
+ -c diret√≥rio
+   Com a op√ß√£o -c, especifica-se um diret√≥rio e o programa cria um arquivo
+   chamado nome.sar, contendo todos os arquivos e sub-diret√≥rios contidos no diret√≥rio indicado.
+
  -e arquivo_sar
-   A opÁ„o -e indica a extraÁ„o de arquivos e, neste caso, indica-se um arquivo 
-   com extens„o .sar. Toda a hierarquia de diretÛrios e arquivos contidos no arquivo
-   s„o extraÌdos.
+   A op√ß√£o -e indica a extra√ß√£o de arquivos e, neste caso, indica-se um arquivo 
+   com extens√£o .sar. Toda a hierarquia de diret√≥rios e arquivos contidos no arquivo
+   s√£o extra√≠dos.
+
  -l arquivo_sar
-   A opÁ„o de listagem, indicada por -l, usa um arquivo com extens„o .sar e
+   A op√ß√£o de listagem, indicada por -l, usa um arquivo com extens√£o .sar e
    apresenta na tela a lista de arquivos nele armazenados, incluindo a estrutura
-   de diretÛrios.
+   de diret√≥rios.
+
 RETURN CODES
   sar produz os seguintes valores de retorno:
-   0: execuÁ„o bem sucedida
-   1: o argumento passado na criaÁ„o n„o È um diretÛrio
-   2: o argumento passado na listagem ou extraÁ„o n„o È um arquivo .sar v·lido
+   0: execu√ß√£o bem sucedida
+   1: o argumento passado na cria√ß√£o n√£o √© um diret√≥rio
+   2: o argumento passado na listagem ou extra√ß√£o n√£o √© um arquivo .sar v√°lido
+
 SEE ALSO
    tar(5)
-*/
 
-/*
-__Ideia de estrutura de um arquivo sar__
-header
-<ldir?>
-<l?>
+Estrutura de um arquivo sar:
+
+!SAR
 diretorios
-<l!>
-<ldir!>
-<sarf?>
-<sard?>
-diretorio_do arquivo_com_nome_e_extens„o
-<sard!>
-<file?>
+<dir!>
+diretorio_do arquivo_com_nome_e_extens√£o
+<bin!>
 conteudo_do_arquivo
-<file!>
-<sarf!>
+...
+<!end>
 */
 
 #include <iostream>
+#include <fstream>
 #include <cstring>
-#include <cstdio>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <vector>
+#include <string>
+#include <cstdlib>
 using namespace std;
 
-#define SUCESS 0                // execuÁ„o bem sucedida
-#define NOT_A_DIRECTORY 1       // argumento n„o È um diretÛrio
-#define NOT_A_VALID_SAR_FILE 2  // argumento n„o È um arquivo sar v·lido
-#define FAILURE 3               // caso genÈrico para execuÁ„o mal sucedida
+///////////////////////////////////////////////////////////////////////////////
+/// DEFINES
+///////////////////////////////////////////////////////////////////////////////
+#define SUCCESS 0               // execu√ß√£o bem sucedida
+#define NOT_A_DIRECTORY 1       // argumento n√£o √© um diret√≥rio
+#define NOT_A_SAR_FILE 2        // argumento n√£o √© um arquivo sar v√°lido
+#define FAILURE 3               // caso gen√©rico para execu√ß√£o mal sucedida
 
-#define BEGIN_DIR_AREA "<ldir?>"
-#define END_DIR_AREA "<ldir!>"
-#define BEGIN_DIR "<l?>"
-#define END_DIR "<l!>"
-#define BEGIN_FILE_AREA "<sarf?>"
+#define TRUE 1
+#define FALSE 0
 
-struct header {
-    char type[4];      // !SAR
-    char name[120];    // filename.sar
-    //char size[4];    // filesize
-};
+#define DIR_NAME "<!dir>"
+#define BIN_AREA "<!bin>"
+#define END_FILE "<!end>"
 
-string path_list;
+#define byte char
 
-void append(const char *source)
-{
-    FILE* dest_file_sar = fopen("arquivo.sar", "ab");
-    FILE* source_file   = fopen(source, "rb");
-    
-    char letter;
+///////////////////////////////////////////////////////////////////////////////
+/// GLOBAL DATA AREA
+///////////////////////////////////////////////////////////////////////////////
+char current_directory[128];
+string work_directory;
+vector<string> path_list;
+std::ifstream in_file;
+std::ofstream out_file;
 
-    while (letter != EOF);
-    {
-        letter = fgetc(source_file);
-        fputc(letter, dest_file_sar);
-    }
-
-    // while(!feof(source_file))
-    // {
-    //     fread(&letter, sizeof(char), 1, source_file);
-    //     fwrite(&letter, sizeof(char), 1, dest_file_sar);
-    // }
-
-    fclose(dest_file_sar);
-    fclose(source_file);	
-}
-
-int isDirectory(const char *path) 
+///////////////////////////////////////////////////////////////////////////////
+// Returns true if the path is a directory, otherwise returns false
+///////////////////////////////////////////////////////////////////////////////
+int is_dir(const char *path) 
 {
     struct stat path_stat;
     stat(path, &path_stat);
-    return !(S_ISDIR(path_stat.st_mode));
+    return (S_ISDIR(path_stat.st_mode));
 }
 
-int listDirectories(const char *path)
+///////////////////////////////////////////////////////////////////////////////
+/// Returns true if the file is a sar file, otherwise returns false
+///////////////////////////////////////////////////////////////////////////////
+int is_sar(const char *path)
+{
+    if (is_dir(path))
+        return FALSE;
+    
+    in_file.open(path, ios::in | std::ofstream::binary);
+    in_file.seekg (0, ios::beg);
+    string str;
+
+    if (in_file.is_open())
+    {    
+        getline(in_file, str);
+        in_file.close();
+        return (str == "!SAR") ? TRUE : FALSE;
+    }
+
+    return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Generates the directories list and saves them
+///////////////////////////////////////////////////////////////////////////////
+int get_dir(const char *path)
 {
     DIR *dir;
     struct dirent *entry;
@@ -109,86 +123,432 @@ int listDirectories(const char *path)
 
     dir = opendir(path);
     if (!dir)
-        return 1;
+        return TRUE;
 
     while ((entry = readdir(dir)) != NULL)
     {
-        if (entry->d_name[0] != '.') {
+        if (entry->d_name[0] != '.') 
+        {
             string newpath = string(path) + "/" + string(entry->d_name);
             
-            path_list += "@";
-            path_list += newpath + "#";
-            
-            cout << newpath << endl;
-            // verificar se È um arquivo, se for, abrir e anexar ao destino 
-            // e dar append no endereÁo.
+            path_list.push_back(newpath);
             
             stat(newpath.c_str(), &info);
             
-            if (S_ISDIR(info.st_mode)) {
-                listDirectories((char *)newpath.c_str());
-            }
-			else {
-                append(entry->d_name);
+            if (S_ISDIR(info.st_mode)) 
+            {
+                get_dir((char *)newpath.c_str());
             }
         }
     }
 
     closedir(dir);
-    return 0;
+    return FALSE;
 }
 
-int main(int argc, char** argv)
+int create_directory(string path)
 {
+    int first = path.find_first_of("/");
 
-    cout << argc << endl;
+    if (first != -1)
+    {   
+        string aux = path.substr(first + 1, path.size());
+        string dir = path.substr(0, first);
+        work_directory.append("/" + dir);
+        mkdir(work_directory.c_str(), ACCESSPERMS);
+        return create_directory(aux);
+    }
+
+    return TRUE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// compresses the files in a new sar file
+///////////////////////////////////////////////////////////////////////////////
+int compress_files(const char *path)
+{
+    string filename(path);
+    int begin = filename.find_last_of("/");
+    int end = filename.size();
+
+    if (begin != -1 && begin != end - 1)
+        filename = filename.substr(begin + 1, end - begin);
+    else if (begin == end - 1)
+        filename = filename.substr(0, begin);
     
+    filename.append(".sar");
+    out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
+
+    if (out_file.is_open())
+    {
+        out_file << "!SAR" << std::endl;
+
+        for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
+            out_file << *i << "\n";
+
+        cout << "================ COMPRESSING ================" << endl;
+        for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
+        {
+            filename = *i;
+            if (!is_dir(filename.c_str()))
+            {
+                out_file << DIR_NAME << "\n";
+                out_file << filename << "\n";
+                out_file << BIN_AREA << "\n";
+
+                in_file.open(filename.c_str(), ios::in | std::ofstream::binary);
+
+                if (in_file.is_open())
+                {
+                    in_file.seekg (0, ios::beg);
+                    byte data[1];
+                    
+                    in_file.read(data, sizeof(data));
+                    while(!in_file.eof())
+                    {
+                        out_file.write(data, sizeof(data));
+                        in_file.read(data, sizeof(data));
+                    }
+                    in_file.close();
+                }
+                
+            }
+        }
+        out_file << END_FILE << "\n";
+        
+        out_file.close();
+        
+        return TRUE;
+    }
+    
+    return FALSE; 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// extract files from sar file
+///////////////////////////////////////////////////////////////////////////////
+int extract_files(const char *path)
+{
+    string filename(path);
+    in_file.open(path, ios::in | std::ofstream::binary);
+
+    if (in_file.is_open())
+    {
+        in_file.seekg (0, ios::beg);
+        in_file.seekg (5, ios::cur);
+
+        byte data[1];
+        byte data_aux[6];
+        
+        // Go to begin of file area
+        while (1)
+        {
+            //in_file >> filename;
+            getline(in_file, filename);
+
+            if (filename == DIR_NAME)
+                break;
+        }
+
+        // File area
+        while (1)
+        {
+            //in_file >> filename;
+            getline(in_file, filename);
+
+            string temp(current_directory);
+            work_directory = temp;
+            create_directory(filename);
+
+            out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
+            cout << "extracting: " << filename << endl;
+
+            if (out_file.is_open())
+            {
+                
+                in_file >> filename;                // read <!bin>
+                in_file.read(data, sizeof(data));   //Remove \n after <!bin>
+                while(1)
+                {
+                    in_file.read(data, sizeof(data));
+                    if (data[0] == '<')
+                    {
+                        in_file.read(&data_aux[0], 1);
+                        
+                        if (data_aux[0] == '!')
+                        {
+                            in_file.read(&data_aux[1], 1);
+
+                            if (data_aux[1] == 'd')
+                            {
+                                in_file.read(&data_aux[2], 1);
+
+                                if (data_aux[2] == 'i')
+                                {
+                                    in_file.read(&data_aux[3], 1);
+
+                                    if (data_aux[3] == 'r')
+                                    {
+                                        in_file.read(&data_aux[4], 1);
+                                        if (data_aux[4] == '>')
+                                        {
+                                            in_file.read(&data_aux[5], 1);
+
+                                            if (data_aux[5] == '\n')
+                                            {
+                                                getline(in_file, filename);
+                                                string temp(current_directory);
+                                                work_directory = temp;
+                                                create_directory(filename);
+                                                out_file.close();
+
+                                                out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
+                                                cout << "extracting: " << filename << endl;
+
+                                                if (in_file.is_open())
+                                                {
+                                                    in_file >> filename;                //Read <!bin>
+                                                    in_file.read(data, sizeof(data));   //Remove \n after <!bin>
+                                                }
+                                                else
+                                                {
+                                                    break;
+                                                }
+                                                
+                                            }
+                                            else
+                                            {
+                                                out_file.write(data, 1);
+                                                out_file.write(&data_aux[0], 1);
+                                                out_file.write(&data_aux[1], 1);
+                                                out_file.write(&data_aux[2], 1);
+                                                out_file.write(&data_aux[3], 1);
+                                                out_file.write(&data_aux[4], 1);
+                                                out_file.write(&data_aux[5], 1);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            out_file.write(data, 1);
+                                            out_file.write(&data_aux[0], 1);
+                                            out_file.write(&data_aux[1], 1);
+                                            out_file.write(&data_aux[2], 1);
+                                            out_file.write(&data_aux[3], 1);
+                                            out_file.write(&data_aux[4], 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        out_file.write(data, 1);
+                                        out_file.write(&data_aux[0], 1);
+                                        out_file.write(&data_aux[1], 1);
+                                        out_file.write(&data_aux[2], 1);
+                                        out_file.write(&data_aux[3], 1);
+                                    }
+                                }
+                                else
+                                {
+                                    out_file.write(data, 1);
+                                    out_file.write(&data_aux[0], 1);
+                                    out_file.write(&data_aux[1], 1);
+                                    out_file.write(&data_aux[2], 1);
+                                }
+                            }
+
+                            else if (data_aux[1] == 'e')
+                            {
+                                in_file.read(&data_aux[2], 1);
+
+                                if (data_aux[2] == 'n')
+                                {
+                                    in_file.read(&data_aux[3], 1);
+
+                                    if (data_aux[3] == 'd')
+                                    {
+                                        in_file.read(&data_aux[4], 1);
+                                        if (data_aux[4] == '>')
+                                        {
+                                            in_file.read(&data_aux[5], 1);
+
+                                            if (data_aux[5] == '\n')
+                                            {
+                                                in_file.close();
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                out_file.write(data, 1);
+                                                out_file.write(&data_aux[0], 1);
+                                                out_file.write(&data_aux[1], 1);
+                                                out_file.write(&data_aux[2], 1);
+                                                out_file.write(&data_aux[3], 1);
+                                                out_file.write(&data_aux[4], 1);
+                                                out_file.write(&data_aux[5], 1);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            out_file.write(data, 1);
+                                            out_file.write(&data_aux[0], 1);
+                                            out_file.write(&data_aux[1], 1);
+                                            out_file.write(&data_aux[2], 1);
+                                            out_file.write(&data_aux[3], 1);
+                                            out_file.write(&data_aux[4], 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        out_file.write(data, 1);
+                                        out_file.write(&data_aux[0], 1);
+                                        out_file.write(&data_aux[1], 1);
+                                        out_file.write(&data_aux[2], 1);
+                                        out_file.write(&data_aux[3], 1);
+                                    }
+                                }
+                                else
+                                {
+                                    out_file.write(data, 1);
+                                    out_file.write(&data_aux[0], 1);
+                                    out_file.write(&data_aux[1], 1);
+                                    out_file.write(&data_aux[2], 1);
+                                }
+                            }
+
+                            else
+                            {
+                                out_file.write(data, 1);
+                                out_file.write(&data_aux[0], 1);
+                                out_file.write(&data_aux[1], 1);
+                            }
+                        }
+                        else
+                        {
+                            out_file.write(data, 1);
+                            out_file.write(&data_aux[0], 1);
+                        }
+                    }
+
+                    else
+                    {
+                        out_file.write(data, 1);
+                    }
+                }
+                out_file.close();
+            }
+            break;
+        }
+    }
+    cout << "done!" << endl;
+    return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// list the files within the sar file
+///////////////////////////////////////////////////////////////////////////////
+int list_files(const char *filename)
+{
+    in_file.open(filename, ios::out | std::ofstream::binary);
+
+    if (in_file.is_open())
+    {
+        in_file.seekg (0, ios::beg);
+        in_file.seekg (5, ios::cur);
+        string path;
+        while (1)
+        {
+            in_file >> path;
+            if (path == DIR_NAME)
+                break;
+            cout << path << endl;
+        } 
+
+        in_file.close();
+    }
+    return FALSE; 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Check arguments
+///////////////////////////////////////////////////////////////////////////////
+int check_args(int argc, char* argv[])
+{    
     if (argc == 3)
     {
-        if (strcmp("-c", argv[1]) == 0) {
-            cout << "argumento -c passado" << endl;
-            cout << "diretorio: " << argv[2] << endl;
+        if (strcmp("-c", argv[1]) == 0) 
+        {
+            // cout << "argumento -c passado" << endl;
+            // cout << "diretorio: " << argv[2] << endl;
+            if (!is_dir(argv[2]))
+            {
+                return NOT_A_DIRECTORY;
+            }
+            else 
+            {
+                get_dir(argv[2]);
+                compress_files(argv[2]);
+                return SUCCESS;
+            }
         }
 
-        else if (strcmp("-e", argv[1]) == 0) {
-            cout << "argumento -e passado" << endl;
-            cout << "arquivo: " << argv[2] << endl;
+        else if (strcmp("-e", argv[1]) == 0) 
+        {
+            // cout << "argumento -e passado" << endl;
+            // cout << "arquivo: " << argv[2] << endl;
+            
+            if (!is_sar(argv[2]))
+            {
+                return  NOT_A_SAR_FILE;
+            }
+            else 
+            {
+                extract_files(argv[2]);
+                return SUCCESS;
+            }
         }
         
-        else if (strcmp("-l", argv[1]) == 0) {
-            cout << "argumento -l passado" << endl;
-            cout << "arquivo: " << argv[2] << endl;
+        else if (strcmp("-l", argv[1]) == 0) 
+        {
+            // cout << "argumento -l passado" << endl;
+            // cout << "arquivo: " << argv[2] << endl;
+            if (!is_sar(argv[2]))
+            {
+                cout << "f" << endl;
+                return  NOT_A_SAR_FILE;
+            }
+            else 
+            {
+                list_files(argv[2]);
+                return SUCCESS;
+            }
         }
-        
-        if (isDirectory(argv[2]))
-            return NOT_A_DIRECTORY;
-        else
-            listDirectories(argv[2]);
-        
     }
 
-    else if (argc == 2)
+    if (argc == 2)
     {
-        if (strcmp("-h", argv[1]) == 0) {
-            cout << "Aqui vai a ajuda" << endl;
+        if (strcmp("-h", argv[1]) == 0) 
+        {
+            cout << "Usage: sar [option] file" << endl;
+            cout << "Options:" << endl; 
+            cout << "    -c          Compress the directory into a new sar file" << endl;
+            cout << "    -e          Extract the sar file in the current directory" << endl;
+            cout << "    -l          List all compressed files in a sar file" << endl; 
+            return SUCCESS;
         }
     }
 
-    else 
-        return FAILURE;
+    cout << "error: missing argument" << endl;
+    cout << "execution terminated" << endl;
 
-    cout << endl;
-    cout << path_list << endl << endl;
-    cout << endl << endl;
+    return FAILURE;
+}
 
-    string bel = "belzebu";
-    string pastel = "O_pastel_do_belzebu_eh_mais_barato";
-    unsigned position = pastel.find("belzebu");
-    cout << "aqui: " << position << endl;
-    string new1 = pastel.substr(position + bel.size(), pastel.size());
-    cout << "Èoq? " << new1 << endl;
-
-
-
-    return SUCESS;
+///////////////////////////////////////////////////////////////////////////////
+/// MAIN
+///////////////////////////////////////////////////////////////////////////////
+int main(int argc, char** argv)
+{
+    getcwd(current_directory, sizeof(current_directory));
+    check_args(argc, argv);
+   
+    return SUCCESS;
 }
