@@ -24,8 +24,8 @@
         2: o argumento passado na listagem ou extração não é um arquivo .sar válido  
 
 5. SEE ALSO  
-        tar(5) 
-        https://www.youtube.com/watch?v=w9l8kLPQ39c
+        tar(5)  
+        https://www.youtube.com/watch?v=w9l8kLPQ39c  
 
 6. Make file
     * compiles the sar.cpp file generating a sar executable.
