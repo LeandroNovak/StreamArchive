@@ -33,22 +33,14 @@ SEE ALSO
 
 /*
 __Ideia de estrutura de um arquivo sar__
-header
+!SAR
 
-<ldir?>
-<l?>
 diretorios
-<l!>
-<ldir!>
-
-<sarf?>
-<sard?>
+<dir!>
 diretorio_do arquivo_com_nome_e_extensão
-<sard!>
-<file?>
+<bin!>
 conteudo_do_arquivo
-<file!>
-<sarf!>
+<!SAR>
 */
 
 #include <iostream>
@@ -83,6 +75,9 @@ using namespace std;
 #define END_FILE_AREA "<sarf!>"
 #define BEGIN_FILE "<file?>"
 #define END_FILE "<file!>"
+
+#define DIR_NAME "<dir!>"
+#define BIN_AREA "<dir!>"
 
 #define byte char
 
@@ -210,7 +205,33 @@ int compress_files(const char *path)
         for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
             out_file << *i << "\n";
 
-        out_file << BEGIN_FILE_AREA << "\n";
+        cout << "================ compactando ================" << endl;
+        for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
+        {
+            filename = *i;
+            if (!is_dir(filename.c_str()))
+            {
+                out_file << DIR_NAME;
+                out_file << filename;
+                out_file << BIN_AREA;
+                
+                cout << filename << endl;
+                in_file.open(filename.c_str(), ios::in | std::ofstream::binary);
+                in_file.seekg (0, ios::beg);
+
+                if (in_file.is_open())
+                {
+                    byte data[1];
+                    
+                    while(!in_file.eof())
+                    {
+                        in_file.read(data, 1);
+                        out_file.write(data, 1);
+                    }
+                }
+                in_file.close();
+            }
+        }
         out_file.close();
     }
     
@@ -242,7 +263,7 @@ int list_files(const char *filename)
          while (1)
         {
             in_file >> path;
-            if (path == BEGIN_FILE_AREA)
+            if (path == DIR_NAME)
                 break;
             cout << path << endl;
         } 
