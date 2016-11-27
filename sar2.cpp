@@ -88,6 +88,7 @@ using namespace std;
 /// GLOBAL DATA AREA
 ///////////////////////////////////////////////////////////////////////////////
 char current_directory[128];
+string work_directory;
 vector<string> path_list;
 std::ifstream in_file;
 std::ofstream out_file;
@@ -143,7 +144,6 @@ int is_sar(const char *path)
     if (in_file.is_open())
     {    
         in_file >> str;
-        //cout << str << endl;
         in_file.close();
         return (str == "!SAR") ? TRUE : FALSE;
     }
@@ -185,6 +185,22 @@ int get_dir(const char *path)
     return FALSE;
 }
 
+int create_directory(string path)
+{
+    int first = path.find_first_of("/");
+
+    if (first != -1)
+    {   
+        string aux = path.substr(first + 1, path.size());
+        string dir = path.substr(0, first);
+        work_directory.append("/" + dir);
+        mkdir(work_directory.c_str(), ACCESSPERMS);
+        return create_directory(aux);
+    }
+
+    return TRUE;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// compresses the files in a new sar file
 ///////////////////////////////////////////////////////////////////////////////
@@ -200,7 +216,6 @@ int compress_files(const char *path)
         filename = filename.substr(0, begin);
     
     filename.append(".sar");
-    cout << filename << endl;
     out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
 
     if (out_file.is_open())
@@ -220,7 +235,6 @@ int compress_files(const char *path)
                 out_file << filename << "\n";
                 out_file << BIN_AREA << "\n";
 
-                cout << filename << endl;
                 in_file.open(filename.c_str(), ios::in | std::ofstream::binary);
                 //system("PAUSE");
                 if (in_file.is_open())
@@ -232,7 +246,6 @@ int compress_files(const char *path)
                     {
                         in_file.read(&data, sizeof(char));
                         out_file.write(&data, sizeof(char));
-                       // cout << "aqui foi" << endl;
                     }
                     in_file.close();
                 }
@@ -274,74 +287,65 @@ int extract_files(const char *path)
                 break;
         }
 
-        cout << "chegou aos dados!" << endl;
         // File area
         while (1)
         {
             in_file >> filename;
-            cout << filename << endl;
 
-            int sub_directory = filename.find_last_of("/");
-            if (sub_directory != -1)
-            {
-                string new_directory = filename.substr(0, sub_directory);
-                string work_directory(current_directory);
-                work_directory.append("/");
-                new_directory = current_directory + new_directory;
-                cout << "nova: " << new_directory << endl;
-                int status = umask(0);
-                status = mkdir(new_directory.c_str(), ACCESSPERMS);
-                cout << status << endl;
-            }
-
-
+            string temp(current_directory);
+            work_directory = temp;
+            create_directory(filename);
 
             out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
 
             if (out_file.is_open())
             {
-                cout << "abriu" << endl;
+                
+                in_file >> filename;        // read <!bin>
                 while(1)
                 {
-                    cout << data << endl;
-                    break;
+                    in_file.read(data, sizeof(data));
+                    if (data[0] == '<')
+                    {
+                        in_file.read(data_aux, 6);
+                        
+                        if (strcmp(data_aux, "!dir>\n") == 0)
+                        {
+                            in_file >> filename;
+                            string temp(current_directory);
+                            work_directory = temp;
+                            create_directory(filename);
+                            out_file.close();
 
-                    // in_file.read(data, 1);
-                    // if (strcmp(data, "<") != 0)
-                    // {
-                    //     in_file.read(data_aux, 6);
-                    //     if (data_aux == "!dir>\n")
-                    //     {
-                    //         in_file.close();
-                    //         in_file >> filename;
-                    //         in_file.open(filename.c_str(), ios::in | std::ofstream::binary);
-                    //         if (in_file.is_open())
-                    //         {
-                    //             in_file >> filename;
-                    //         }
-                    //         else
-                    //         {
-                    //             break;
-                    //         }
-                    //     }
+                            out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
 
-                    //     else if (data_aux == "!end>\n")
-                    //     {
-                    //         in_file.close();
-                    //         break;
-                    //     }
+                            if (in_file.is_open())
+                            {
+                                in_file >> filename;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
 
-                    //     else
-                    //     {
-                    //         out_file.write(data, 1);
-                    //         out_file.write(data_aux, 6);
-                    //     }
-                    // }
+                        else if (strcmp(data_aux, "!end>\n") == 0)
+                        {
+                            in_file.close();
+                            break;
+                        }
 
-                    // else
-                    // {
-                    //     out_file.write(data, 1);
-                    // }
+                        else
+                        {
+                            out_file.write(data, 1);
+                            out_file.write(data_aux, 6);
+                        }
+                    }
+
+                    else
+                    {
+                        out_file.write(data, 1);
+                    }
                 }
                 out_file.close();
             }
@@ -459,6 +463,8 @@ int check_args(int argc, char* argv[])
 int main(int argc, char** argv)
 {
     getcwd(current_directory, sizeof(current_directory));
+    string temp(current_directory);
+    work_directory.append(temp);
     check_args(argc, argv);
     
     // cout << "oloco" << check_args(argc, argv) << endl;
