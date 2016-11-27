@@ -27,9 +27,9 @@
 5. SAR FILE STRUCTURE  
 	!SAR  
 	directories_list  
-	<dir!>  
+	\<dir!>  
 	filename  
-	<bin!>  
+	\<bin!>  
 	file_content  
 	...  
 	<!end>  
