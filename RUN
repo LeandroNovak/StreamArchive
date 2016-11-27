@@ -1,0 +1,4 @@
+clear
+g++ -o sar sar2.cpp
+./sar -c sar_folder
+

@@ -29,18 +29,17 @@ RETURN CODES
 
 SEE ALSO
    tar(5)
-*/
 
-/*
-__Ideia de estrutura de um arquivo sar__
+Estrutura de um arquivo sar:
+
 !SAR
-
 diretorios
 <dir!>
 diretorio_do arquivo_com_nome_e_extensão
 <bin!>
 conteudo_do_arquivo
-<!SAR>
+...
+<!end>
 */
 
 #include <iostream>
@@ -51,10 +50,8 @@ conteudo_do_arquivo
 #include <unistd.h>
 #include <dirent.h>
 #include <vector>
-
 #include <string>
 #include <cstdlib>
-//#include <cstdio>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,15 +64,6 @@ using namespace std;
 
 #define TRUE 1
 #define FALSE 0
-
-// #define BEGIN_DIR_AREA "<dir?>"
-// #define END_DIR_AREA "<dir!>"
-// #define BEGIN_DIR "<l?>"
-// #define END_DIR "<l!>"
-// #define BEGIN_FILE_AREA "<sarf?>"
-// #define END_FILE_AREA "<sarf!>"
-// #define BEGIN_FILE "<file?>"
-// #define END_FILE "<file!>"
 
 #define DIR_NAME "<!dir>"
 #define BIN_AREA "<!bin>"
@@ -92,32 +80,6 @@ string work_directory;
 vector<string> path_list;
 std::ifstream in_file;
 std::ofstream out_file;
-
-///////////////////////////////////////////////////////////////////////////////
-/// Inserts the file at the end of the sar file
-///////////////////////////////////////////////////////////////////////////////
-void append(const char *source) 
-{
-    FILE* dest_file_sar = fopen("arquivo.sar", "ab");
-    FILE* source_file   = fopen(source, "rb");
-    
-    char letter;
-
-    while (letter != EOF);
-    {
-        letter = fgetc(source_file);
-        fputc(letter, dest_file_sar);
-    }
-
-    // while(!feof(source_file))
-    // {
-    //     fread(&letter, sizeof(char), 1, source_file);
-    //     fwrite(&letter, sizeof(char), 1, dest_file_sar);
-    // }
-
-    fclose(dest_file_sar);
-    fclose(source_file);	
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Returns true if the path is a directory, otherwise returns false
@@ -143,7 +105,7 @@ int is_sar(const char *path)
 
     if (in_file.is_open())
     {    
-        in_file >> str;
+        getline(in_file, str);
         in_file.close();
         return (str == "!SAR") ? TRUE : FALSE;
     }
@@ -236,16 +198,17 @@ int compress_files(const char *path)
                 out_file << BIN_AREA << "\n";
 
                 in_file.open(filename.c_str(), ios::in | std::ofstream::binary);
-                //system("PAUSE");
+
                 if (in_file.is_open())
                 {
                     in_file.seekg (0, ios::beg);
-                    byte data;
+                    byte data[1];
                     
+                    in_file.read(data, sizeof(data));
                     while(!in_file.eof())
                     {
-                        in_file.read(&data, sizeof(char));
-                        out_file.write(&data, sizeof(char));
+                        out_file.write(data, sizeof(data));
+                        in_file.read(data, sizeof(data));
                     }
                     in_file.close();
                 }
@@ -281,7 +244,8 @@ int extract_files(const char *path)
         // Go to begin of file area
         while (1)
         {
-            in_file >> filename;
+            //in_file >> filename;
+            getline(in_file, filename);
 
             if (filename == DIR_NAME)
                 break;
@@ -290,7 +254,8 @@ int extract_files(const char *path)
         // File area
         while (1)
         {
-            in_file >> filename;
+            //in_file >> filename;
+            getline(in_file, filename);
 
             string temp(current_directory);
             work_directory = temp;
@@ -301,7 +266,9 @@ int extract_files(const char *path)
             if (out_file.is_open())
             {
                 
-                in_file >> filename;        // read <!bin>
+                in_file >> filename;                // read <!bin>
+                in_file.read(data, sizeof(data));   //Remove \n after <!bin>
+                //cout << (int) data[0] << endl;
                 while(1)
                 {
                     in_file.read(data, sizeof(data));
@@ -311,17 +278,21 @@ int extract_files(const char *path)
                         
                         if (strcmp(data_aux, "!dir>\n") == 0)
                         {
-                            in_file >> filename;
+                            //in_file >> filename;
+                            getline(in_file, filename);
                             string temp(current_directory);
                             work_directory = temp;
                             create_directory(filename);
                             out_file.close();
 
                             out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
+                            cout << "extracting: " << filename << endl;
 
                             if (in_file.is_open())
                             {
-                                in_file >> filename;
+                                in_file >> filename;                //Read <!bin>
+                                in_file.read(data, sizeof(data));   //Remove \n after <!bin>
+                                //cout << (int) data[0] << endl;
                             }
                             else
                             {
@@ -358,7 +329,6 @@ int extract_files(const char *path)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// list the files within the sar file
-///
 ///////////////////////////////////////////////////////////////////////////////
 int list_files(const char *filename)
 {
@@ -463,47 +433,7 @@ int check_args(int argc, char* argv[])
 int main(int argc, char** argv)
 {
     getcwd(current_directory, sizeof(current_directory));
-    string temp(current_directory);
-    work_directory.append(temp);
     check_args(argc, argv);
-    
-    // cout << "oloco" << check_args(argc, argv) << endl;
-    // cout << endl;
-    // cout << "============ exibe conteudo do vector ============" << endl;
-    // for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-    //     cout << *i << endl;
-    // cout << endl << endl;
-
-    // cout << "============ abre arquivo de output ==============" << endl;
-    // out_file.open("arquivo.bin", ios::out | std::ofstream::binary);
-
-    // if (out_file.is_open())
-    // {
-    //     cout << "arquivo aberto com sucesso" << endl;
-    //     char offset[] = "ABCD";
-    //     out_file << "!SAR" << std::endl;
-    //     for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-    //         out_file << *i << "\n";
-    // }
-    // out_file.close();
-
-    // cout << "============ abre arquivo de input ===============" << endl;
-    // in_file.open("arquivo.bin", ios::in | std::ofstream::binary);
-
-    // in_file.seekg (0, ios::beg);
-
-    // if (in_file.is_open())
-    // {
-    //     string str;
-        
-    //     while(!in_file.eof())
-    //     {
-    //         //getline(in_file, str);
-    //         in_file >> str;
-    //         //if ()
-    //         cout << str << endl;
-    //     }
-    // }
-    // in_file.close();
+   
     return SUCCESS;
 }
