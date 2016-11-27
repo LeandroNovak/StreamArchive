@@ -71,7 +71,6 @@ using namespace std;
 
 #define byte char
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// GLOBAL DATA AREA
 ///////////////////////////////////////////////////////////////////////////////
@@ -262,54 +261,170 @@ int extract_files(const char *path)
             create_directory(filename);
 
             out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
+            cout << "extracting: " << filename << endl;
 
             if (out_file.is_open())
             {
                 
                 in_file >> filename;                // read <!bin>
                 in_file.read(data, sizeof(data));   //Remove \n after <!bin>
-                //cout << (int) data[0] << endl;
                 while(1)
                 {
                     in_file.read(data, sizeof(data));
                     if (data[0] == '<')
                     {
-                        in_file.read(data_aux, 6);
+                        in_file.read(&data_aux[0], 1);
                         
-                        if (strcmp(data_aux, "!dir>\n") == 0)
+                        if (data_aux[0] == '!')
                         {
-                            //in_file >> filename;
-                            getline(in_file, filename);
-                            string temp(current_directory);
-                            work_directory = temp;
-                            create_directory(filename);
-                            out_file.close();
+                            in_file.read(&data_aux[1], 1);
 
-                            out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
-                            cout << "extracting: " << filename << endl;
-
-                            if (in_file.is_open())
+                            if (data_aux[1] == 'd')
                             {
-                                in_file >> filename;                //Read <!bin>
-                                in_file.read(data, sizeof(data));   //Remove \n after <!bin>
-                                //cout << (int) data[0] << endl;
+                                in_file.read(&data_aux[2], 1);
+
+                                if (data_aux[2] == 'i')
+                                {
+                                    in_file.read(&data_aux[3], 1);
+
+                                    if (data_aux[3] == 'r')
+                                    {
+                                        in_file.read(&data_aux[4], 1);
+                                        if (data_aux[4] == '>')
+                                        {
+                                            in_file.read(&data_aux[5], 1);
+
+                                            if (data_aux[5] == '\n')
+                                            {
+                                                getline(in_file, filename);
+                                                string temp(current_directory);
+                                                work_directory = temp;
+                                                create_directory(filename);
+                                                out_file.close();
+
+                                                out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
+                                                cout << "extracting: " << filename << endl;
+
+                                                if (in_file.is_open())
+                                                {
+                                                    in_file >> filename;                //Read <!bin>
+                                                    in_file.read(data, sizeof(data));   //Remove \n after <!bin>
+                                                }
+                                                else
+                                                {
+                                                    break;
+                                                }
+                                                
+                                            }
+                                            else
+                                            {
+                                                out_file.write(data, 1);
+                                                out_file.write(&data_aux[0], 1);
+                                                out_file.write(&data_aux[1], 1);
+                                                out_file.write(&data_aux[2], 1);
+                                                out_file.write(&data_aux[3], 1);
+                                                out_file.write(&data_aux[4], 1);
+                                                out_file.write(&data_aux[5], 1);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            out_file.write(data, 1);
+                                            out_file.write(&data_aux[0], 1);
+                                            out_file.write(&data_aux[1], 1);
+                                            out_file.write(&data_aux[2], 1);
+                                            out_file.write(&data_aux[3], 1);
+                                            out_file.write(&data_aux[4], 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        out_file.write(data, 1);
+                                        out_file.write(&data_aux[0], 1);
+                                        out_file.write(&data_aux[1], 1);
+                                        out_file.write(&data_aux[2], 1);
+                                        out_file.write(&data_aux[3], 1);
+                                    }
+                                }
+                                else
+                                {
+                                    out_file.write(data, 1);
+                                    out_file.write(&data_aux[0], 1);
+                                    out_file.write(&data_aux[1], 1);
+                                    out_file.write(&data_aux[2], 1);
+                                }
                             }
+
+                            else if (data_aux[1] == 'e')
+                            {
+                                in_file.read(&data_aux[2], 1);
+
+                                if (data_aux[2] == 'n')
+                                {
+                                    in_file.read(&data_aux[3], 1);
+
+                                    if (data_aux[3] == 'd')
+                                    {
+                                        in_file.read(&data_aux[4], 1);
+                                        if (data_aux[4] == '>')
+                                        {
+                                            in_file.read(&data_aux[5], 1);
+
+                                            if (data_aux[5] == '\n')
+                                            {
+                                                in_file.close();
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                out_file.write(data, 1);
+                                                out_file.write(&data_aux[0], 1);
+                                                out_file.write(&data_aux[1], 1);
+                                                out_file.write(&data_aux[2], 1);
+                                                out_file.write(&data_aux[3], 1);
+                                                out_file.write(&data_aux[4], 1);
+                                                out_file.write(&data_aux[5], 1);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            out_file.write(data, 1);
+                                            out_file.write(&data_aux[0], 1);
+                                            out_file.write(&data_aux[1], 1);
+                                            out_file.write(&data_aux[2], 1);
+                                            out_file.write(&data_aux[3], 1);
+                                            out_file.write(&data_aux[4], 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        out_file.write(data, 1);
+                                        out_file.write(&data_aux[0], 1);
+                                        out_file.write(&data_aux[1], 1);
+                                        out_file.write(&data_aux[2], 1);
+                                        out_file.write(&data_aux[3], 1);
+                                    }
+                                }
+                                else
+                                {
+                                    out_file.write(data, 1);
+                                    out_file.write(&data_aux[0], 1);
+                                    out_file.write(&data_aux[1], 1);
+                                    out_file.write(&data_aux[2], 1);
+                                }
+                            }
+
                             else
                             {
-                                break;
+                                out_file.write(data, 1);
+                                out_file.write(&data_aux[0], 1);
+                                out_file.write(&data_aux[1], 1);
                             }
                         }
-
-                        else if (strcmp(data_aux, "!end>\n") == 0)
-                        {
-                            in_file.close();
-                            break;
-                        }
-
                         else
                         {
                             out_file.write(data, 1);
-                            out_file.write(data_aux, 6);
+                            out_file.write(&data_aux[0], 1);
                         }
                     }
 
@@ -323,7 +438,7 @@ int extract_files(const char *path)
             break;
         }
     }
-
+    cout << "done!" << endl;
     return FALSE;
 }
 

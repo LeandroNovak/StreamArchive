@@ -1,0 +1,10 @@
+!SAR
+testerror/file.txt
+testerror/file2.txt
+<!dir>
+testerror/file.txt
+<!bin>
+conteudodoarquivo1 1 2 3 <!dir>
+testerror/file2.txt
+<!bin>
+conteudodoarquivo2 1 2 3 <><!end>
