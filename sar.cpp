@@ -52,6 +52,8 @@ conteudo_do_arquivo
 #include <vector>
 #include <string>
 #include <cstdlib>
+#include <clocale>
+#include <wchar.h>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,9 +78,23 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 char current_directory[128];
 string work_directory;
+
 vector<string> path_list;
+
 std::ifstream in_file;
 std::ofstream out_file;
+
+///////////////////////////////////////////////////////////////////////////////
+/// FUNCTIONS PROTOTYPES
+///////////////////////////////////////////////////////////////////////////////
+int is_dir(const char *path);
+int is_sar(const char *path);
+int get_dir(const char *path);
+int create_directory(string path);
+int compress_files(const char *path);
+int extract_files(const char *path);
+int list_files(const char *filename);
+int check_args(int argc, char* argv[]);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Returns true if the path is a directory, otherwise returns false
@@ -186,7 +202,7 @@ int compress_files(const char *path)
         for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
             out_file << *i << "\n";
 
-        cout << "================ COMPRESSING ================" << endl;
+        cout << "Compressing files" << endl;
         for (vector<string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
         {
             filename = *i;
@@ -218,6 +234,7 @@ int compress_files(const char *path)
         
         out_file.close();
         
+        cout << "All files were compressed" << endl;
         return TRUE;
     }
     
@@ -231,6 +248,8 @@ int extract_files(const char *path)
 {
     string filename(path);
     in_file.open(path, ios::in | std::ofstream::binary);
+    unsigned total_files = 0;
+    unsigned current_file = 0;
 
     if (in_file.is_open())
     {
@@ -245,7 +264,7 @@ int extract_files(const char *path)
         {
             //in_file >> filename;
             getline(in_file, filename);
-
+            
             if (filename == DIR_NAME)
                 break;
         }
@@ -261,11 +280,10 @@ int extract_files(const char *path)
             create_directory(filename);
 
             out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
-            cout << "extracting: " << filename << endl;
-
+            
             if (out_file.is_open())
             {
-                
+                cout << "Extracting files" << endl;
                 in_file >> filename;                // read <!bin>
                 in_file.read(data, sizeof(data));   //Remove \n after <!bin>
                 while(1)
@@ -303,7 +321,6 @@ int extract_files(const char *path)
                                                 out_file.close();
 
                                                 out_file.open(filename.c_str(), ios::out | std::ofstream::binary);
-                                                cout << "extracting: " << filename << endl;
 
                                                 if (in_file.is_open())
                                                 {
@@ -438,7 +455,7 @@ int extract_files(const char *path)
             break;
         }
     }
-    cout << "done!" << endl;
+    cout << "All files have been extracted" << endl;
     return FALSE;
 }
 
@@ -476,8 +493,6 @@ int check_args(int argc, char* argv[])
     {
         if (strcmp("-c", argv[1]) == 0) 
         {
-            // cout << "argumento -c passado" << endl;
-            // cout << "diretorio: " << argv[2] << endl;
             if (!is_dir(argv[2]))
             {
                 return NOT_A_DIRECTORY;
@@ -492,9 +507,6 @@ int check_args(int argc, char* argv[])
 
         else if (strcmp("-e", argv[1]) == 0) 
         {
-            // cout << "argumento -e passado" << endl;
-            // cout << "arquivo: " << argv[2] << endl;
-            
             if (!is_sar(argv[2]))
             {
                 return  NOT_A_SAR_FILE;
@@ -508,8 +520,6 @@ int check_args(int argc, char* argv[])
         
         else if (strcmp("-l", argv[1]) == 0) 
         {
-            // cout << "argumento -l passado" << endl;
-            // cout << "arquivo: " << argv[2] << endl;
             if (!is_sar(argv[2]))
             {
                 cout << "f" << endl;
@@ -525,7 +535,7 @@ int check_args(int argc, char* argv[])
 
     if (argc == 2)
     {
-        if (strcmp("-h", argv[1]) == 0) 
+        if ((strcmp("-h", argv[1]) == 0) || (strcmp("-a", argv[1]) == 0))  
         {
             cout << "Usage: sar [option] file" << endl;
             cout << "Options:" << endl; 
@@ -548,7 +558,5 @@ int check_args(int argc, char* argv[])
 int main(int argc, char** argv)
 {
     getcwd(current_directory, sizeof(current_directory));
-    check_args(argc, argv);
-   
-    return SUCCESS;
+    return check_args(argc, argv);;
 }
