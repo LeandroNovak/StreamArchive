@@ -558,5 +558,5 @@ int check_args(int argc, char* argv[])
 int main(int argc, char** argv)
 {
     getcwd(current_directory, sizeof(current_directory));
-    return check_args(argc, argv);;
+    return check_args(argc, argv);
 }
