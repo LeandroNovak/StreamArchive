@@ -12,18 +12,18 @@ sar - cria e extrai uma estrutura de diretórios em um arquivo
 
 #### **3. DESCRIPTION**  
 
--c diretório  
+**_-c diretório_**  
 
-    Com a opção -c, especifica-se um diretório e o programa cria um arquivo chamado nome.sar, contendo todos os arquivos e sub-diretórios contidos no diretório indicado.  
+Com a opção -c, especifica-se um diretório e o programa cria um arquivo chamado nome.sar, contendo todos os arquivos e sub-diretórios contidos no diretório indicado.  
 
--e arquivo_sar  
+**_-e arquivo_sar_**  
 
-    A opção -e indica a extração de arquivos e, neste caso, indica-se um arquivo com extensão .sar.  
-    Toda a hierarquia de diretórios e arquivos contidos no arquivo são extraídos.  
+A opção -e indica a extração de arquivos e, neste caso, indica-se um arquivo com extensão .sar.  
+Toda a hierarquia de diretórios e arquivos contidos no arquivo são extraídos.  
 
--l arquivo_sar  
+**_-l arquivo_sar_**  
 
-    A opção de listagem, indicada por -l, usa um arquivo com extensão .sar e apresenta na tela a lista de arquivos nele armazenados, incluindo a estrutura de diretórios.  
+A opção de listagem, indicada por -l, usa um arquivo com extensão .sar e apresenta na tela a lista de arquivos nele armazenados, incluindo a estrutura de diretórios.  
 
 #### **4. RETURN CODES**  
     
