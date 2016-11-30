@@ -466,36 +466,14 @@ int list_files(const char *filename)
             if (path == DIR_NAME)
                 break;
             
-            // if (is_dir(path.c_str()))
-            // {
-            //     std::cout << path << std::endl;
-            //     std::string path2;
-            //     std::getline(in_file, path2, (char)0x0A);
+            int pos = path.find_last_of("/");
 
-            //     while (path2.find(path) != -1 && path2 != DIR_NAME &&  is_file(path2.c_str()))
-            //     {
-            //         //std::cout << " "<<  path2 << "\r";
-            //         int begin = path2.find_last_of("/");
-            //         std::string name = path2.substr(begin + 1, path2.size());
-            //         std::cout << "|";
-            //         for (int i = 1; i < path.size() + 1; i++)
-            //         {
-            //             std::cout << "-";
-            //         }
-
-            //         std::cout << " " << name << std::endl;
-
-            //         std::getline(in_file, path2, (char)0x0A);
-
-            //     }
-
-            //     if (path2 == DIR_NAME)
-            //         break;
-            // }
-
-            
-
-            std::cout << path << std::endl;
+            std::cout << "|";
+            for (int i = 0 ; i < pos / 3; i++)
+            {
+                std::cout << "-";
+            }
+            std::cout << " " << path.substr(pos + 1, path.size()) << std::endl;
             std::getline(in_file, path, (char)0x0A);
         }
 
