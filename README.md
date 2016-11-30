@@ -1,4 +1,4 @@
-# **sar**
+# **sar - stream archive**
 ----
 
 #### **1. NAME**  
