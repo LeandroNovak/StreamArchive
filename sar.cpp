@@ -467,19 +467,35 @@ int list_files(const char *filename)
             if (path == DIR_NAME)
                 break;
             
-            int pos = path.find_last_of("/");
+            std::cout << "|";
 
-            std::cout << (char)195;
-            for (int i = 0 ; i < (pos / 4) - 1; i++)
+            int pos = 0;
+            if ((pos = path.find("/", pos + 1)) != -1)
             {
-                std::cout << (char)196;
+                std::cout << "--";
             }
+
+            while ((pos = path.find("/", pos + 1)) != -1)
+            {
+                std::cout << "---";
+            }
+
+            pos = path.find_last_of("/");
+
+            
+            // for (int i = 0 ; i < (pos / 4) - 1; i++)
+            // {
+            //     std::cout << "-";
+            // }
+
+            // std::cout << pos << ": ";
             std::cout << " " << path.substr(pos + 1, path.size());
             std::getline(in_file, path, (char)0x0A);
             if (path == DIR_NAME)
             {
-                std::cout << "\r" << (char)192;
+                std::cout << "\r" << "+";//(char)192;
             }
+
             std::cout << std::endl;
         }
 
