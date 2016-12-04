@@ -140,14 +140,13 @@ int create_directory(std::string path)
 {
     int first = path.find_first_of("/");
 
-    // Se não houver uma '/' na string, não todos os diretórios já foram criados
+    // Se não houver uma '/' na string, todos os diretórios já foram criados
     if (first != -1)
     {
         std::string aux = path.substr(first + 1, path.size());
         std::string dir = path.substr(0, first);
         work_directory.append("/" + dir);
 
-        // Cria o primeiro diretório partindo do diretório do programa sar
         #ifdef _WIN32
         CreateDirectory(work_directory.c_str(), NULL);
         #else
@@ -258,8 +257,7 @@ int extract_files(const char *path)
         // Busca a área de arquivos
         while (1)
         {
-            getline(in_file, filename);
-
+            std::getline(in_file, filename, (char)0x0A);
             if (filename == DIR_NAME)
                 break;
         }
@@ -315,10 +313,10 @@ int extract_files(const char *path)
                                             if (data_aux[5] == '\n')
                                             {
                                                 getline(in_file, filename);
-                                                std::string temp(current_directory);
-                                                work_directory = temp;
 
                                                 // Cria o diretório para armazenar este arquivo
+                                                std::string temp(current_directory);
+                                                work_directory = temp;
                                                 create_directory(filename);
 
                                                 out_file.close();
@@ -392,6 +390,10 @@ int extract_files(const char *path)
                                             if (data_aux[5] == '\n')
                                             {
                                                 in_file.close();
+                                                out_file.close();
+                                                //std::cout << "Todos os arquivos foram extraidos" << std::endl;
+                                                std::cout << "All files have been extracted" << std::endl;
+                                                return true;
                                                 break;
                                             }
                                             else
@@ -454,14 +456,8 @@ int extract_files(const char *path)
                 }
                 out_file.close();
             }
-            break;
         }
-        //std::cout << "Todos os arquivos foram extraidos" << std::endl;
-        std::cout << "All files have been extracted" << std::endl;
-        return true;
     }
-    
-    
     return false;
 }
 
