@@ -83,8 +83,7 @@ int is_sar(const char *path)
     in_file.seekg (0, std::ios::beg);
     std::string str;
 
-    if (in_file.is_open())
-    {
+    if (in_file.is_open()) {
         getline(in_file, str);
         in_file.close();
         return (str == "SAR") ? true : false;
@@ -109,11 +108,9 @@ int get_dir(const char *path)
         return true;
 
     // enquanto houverem diretórios a serem lidos
-    while ((entry = readdir(dir)) != NULL)
-    {
+    while ((entry = readdir(dir)) != NULL) {
         // se o diretório lido não for o atual, nem o diretório pai
-        if (entry->d_name[0] != '.')
-        {
+        if (entry->d_name[0] != '.') {
             std::string newpath = std::string(path) + "/" + std::string(entry->d_name);
 
             // salva o diretório
@@ -121,8 +118,7 @@ int get_dir(const char *path)
 
             stat(newpath.c_str(), &info);
 
-            if (S_ISDIR(info.st_mode))
-            {
+            if (S_ISDIR(info.st_mode)) {
                 // busca o próximo recursivamente
                 get_dir((char *)newpath.c_str());
             }
@@ -141,8 +137,7 @@ int create_directory(std::string path)
     int first = path.find_first_of("/");
 
     // Se não houver uma '/' na string, todos os diretórios já foram criados
-    if (first != -1)
-    {
+    if (first != -1) {
         std::string aux = path.substr(first + 1, path.size());
         std::string dir = path.substr(0, first);
         work_directory.append("/" + dir);
@@ -180,24 +175,19 @@ int compress_files(const char *path)
 
     out_file.open(filename.c_str(), std::ios::out | std::ofstream::binary);
 
-    if (out_file.is_open())
-    {
+    if (out_file.is_open()) {
         // Adiciona o cabeçalho identificador de arquivo sar
         out_file << "SAR" << std::endl;
 
         for (std::vector<std::string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-        {
             out_file << *i << "\n";
-        }
         
         //std::cout << "Compactando arquivos" << std::endl;
         std::cout << "Compressing files" << std::endl;
         
-        for (std::vector<std::string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-        {
+        for (std::vector<std::string>::const_iterator i = path_list.begin(); i != path_list.end(); i++) {
             filename = *i;
-            if (!is_dir(filename.c_str()))
-            {
+            if (!is_dir(filename.c_str())) {
                 // Adiciona a tag de nome de diretório
                 out_file << DIR_NAME << "\n";
                 // O nome do diretório
@@ -208,17 +198,17 @@ int compress_files(const char *path)
                 in_file.open(filename.c_str(), std::ios::in | std::ofstream::binary);
 
                 // Lê byte a byte dando copiando do arquivo original para o novo arquivo
-                if (in_file.is_open())
-                {
+                if (in_file.is_open()) {
                     in_file.seekg (0, std::ios::beg);
                     byte data[1];
 
                     in_file.read(data, sizeof(data));
-                    while(!in_file.eof())
-                    {
+
+                    while(!in_file.eof()) {
                         out_file.write(data, sizeof(data));
                         in_file.read(data, sizeof(data));
                     }
+
                     in_file.close();
                 }
 
@@ -245,8 +235,7 @@ int extract_files(const char *path)
     std::string filename(path);
     in_file.open(path, std::ios::in | std::ofstream::binary);
 
-    if (in_file.is_open())
-    {
+    if (in_file.is_open()) {
         // Move o ponteiro de leitura de arquivo para o início da área de diretórios
         in_file.seekg (0, std::ios::beg);
         in_file.seekg (4, std::ios::cur);
@@ -255,15 +244,13 @@ int extract_files(const char *path)
         byte data_aux[6];
 
         // Busca a área de arquivos
-        while (1)
-        {
+        while (1) {
             std::getline(in_file, filename, (char)0x0A);
             if (filename == DIR_NAME)
                 break;
         }
 
-        while (1)
-        {
+        while (1) {
             getline(in_file, filename);
 
             std::string temp(current_directory);
@@ -272,8 +259,7 @@ int extract_files(const char *path)
 
             out_file.open(filename.c_str(), std::ios::out | std::ofstream::binary);
 
-            if (out_file.is_open())
-            {
+            if (out_file.is_open()) {
                 //std::cout << "Extraindo arquivos" << std::endl;
                 std::cout << "Extracting files" << std::endl;
 
@@ -281,37 +267,30 @@ int extract_files(const char *path)
                 in_file >> filename;
                 in_file.read(data, sizeof(data));   
                 
-                while(1)
-                {
+                while(1) {
                     in_file.read(data, sizeof(data));
 
                     // Ao encontrar um caractere identificador, verifica se a sequência bate com a de alguma tag
-                    if (data[0] == '<')
-                    {
+                    if (data[0] == '<') {
                         in_file.read(&data_aux[0], 1);
 
-                        if (data_aux[0] == '!')
-                        {
+                        if (data_aux[0] == '!') {
                             in_file.read(&data_aux[1], 1);
 
-                            if (data_aux[1] == 'd')
-                            {
+                            if (data_aux[1] == 'd') {
                                 in_file.read(&data_aux[2], 1);
 
-                                if (data_aux[2] == 'i')
-                                {
+                                if (data_aux[2] == 'i') {
                                     in_file.read(&data_aux[3], 1);
 
-                                    if (data_aux[3] == 'r')
-                                    {
+                                    if (data_aux[3] == 'r') {
                                         in_file.read(&data_aux[4], 1);
-                                        if (data_aux[4] == '>')
-                                        {
+
+                                        if (data_aux[4] == '>') {
                                             in_file.read(&data_aux[5], 1);
 
                                             // Se a tag lida for a indicadora de nome de um novo arquivo
-                                            if (data_aux[5] == '\n')
-                                            {
+                                            if (data_aux[5] == '\n') {
                                                 getline(in_file, filename);
 
                                                 // Cria o diretório para armazenar este arquivo
@@ -323,17 +302,15 @@ int extract_files(const char *path)
 
                                                 out_file.open(filename.c_str(), std::ios::out | std::ofstream::binary);
 
-                                                if (in_file.is_open())
-                                                {
+                                                if (in_file.is_open()) {
                                                     // Lê o <!bin> e o \n depois dele
                                                     in_file >> filename;
                                                     in_file.read(data, sizeof(data));
-                                                }
+                                                } 
                                                 else
                                                     break;
-                                            }
-                                            else
-                                            {
+                                            } 
+                                            else {
                                                 out_file.write(data, 1);
                                                 out_file.write(&data_aux[0], 1);
                                                 out_file.write(&data_aux[1], 1);
@@ -343,8 +320,7 @@ int extract_files(const char *path)
                                                 out_file.write(&data_aux[5], 1);
                                             }
                                         }
-                                        else
-                                        {
+                                        else {
                                             out_file.write(data, 1);
                                             out_file.write(&data_aux[0], 1);
                                             out_file.write(&data_aux[1], 1);
@@ -353,8 +329,7 @@ int extract_files(const char *path)
                                             out_file.write(&data_aux[4], 1);
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         out_file.write(data, 1);
                                         out_file.write(&data_aux[0], 1);
                                         out_file.write(&data_aux[1], 1);
@@ -362,8 +337,7 @@ int extract_files(const char *path)
                                         out_file.write(&data_aux[3], 1);
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     out_file.write(data, 1);
                                     out_file.write(&data_aux[0], 1);
                                     out_file.write(&data_aux[1], 1);
@@ -371,24 +345,20 @@ int extract_files(const char *path)
                                 }
                             }
 
-                            else if (data_aux[1] == 'e')
-                            {
+                            else if (data_aux[1] == 'e') {
                                 in_file.read(&data_aux[2], 1);
 
-                                if (data_aux[2] == 'n')
-                                {
+                                if (data_aux[2] == 'n') {
                                     in_file.read(&data_aux[3], 1);
 
-                                    if (data_aux[3] == 'd')
-                                    {
+                                    if (data_aux[3] == 'd') {
                                         in_file.read(&data_aux[4], 1);
-                                        if (data_aux[4] == '>')
-                                        {
+
+                                        if (data_aux[4] == '>') {
                                             in_file.read(&data_aux[5], 1);
 
                                             // Caso a tag seja de final do arquivo sar, encerra-se a descompressão
-                                            if (data_aux[5] == '\n')
-                                            {
+                                            if (data_aux[5] == '\n') {
                                                 in_file.close();
                                                 out_file.close();
                                                 //std::cout << "Todos os arquivos foram extraidos" << std::endl;
@@ -396,8 +366,7 @@ int extract_files(const char *path)
                                                 return true;
                                                 break;
                                             }
-                                            else
-                                            {
+                                            else {
                                                 out_file.write(data, 1);
                                                 out_file.write(&data_aux[0], 1);
                                                 out_file.write(&data_aux[1], 1);
@@ -407,8 +376,7 @@ int extract_files(const char *path)
                                                 out_file.write(&data_aux[5], 1);
                                             }
                                         }
-                                        else
-                                        {
+                                        else {
                                             out_file.write(data, 1);
                                             out_file.write(&data_aux[0], 1);
                                             out_file.write(&data_aux[1], 1);
@@ -417,8 +385,7 @@ int extract_files(const char *path)
                                             out_file.write(&data_aux[4], 1);
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         out_file.write(data, 1);
                                         out_file.write(&data_aux[0], 1);
                                         out_file.write(&data_aux[1], 1);
@@ -426,31 +393,26 @@ int extract_files(const char *path)
                                         out_file.write(&data_aux[3], 1);
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     out_file.write(data, 1);
                                     out_file.write(&data_aux[0], 1);
                                     out_file.write(&data_aux[1], 1);
                                     out_file.write(&data_aux[2], 1);
                                 }
                             }
-
-                            else
-                            {
+                            else {
                                 out_file.write(data, 1);
                                 out_file.write(&data_aux[0], 1);
                                 out_file.write(&data_aux[1], 1);
                             }
                         }
-                        else
-                        {
+                        else {
                             out_file.write(data, 1);
                             out_file.write(&data_aux[0], 1);
                         }
                     }
 
-                    else
-                    {
+                    else {
                         out_file.write(data, 1);
                     }
                 }
@@ -468,8 +430,7 @@ int list_files(const char *filename)
 {
     in_file.open(filename, std::ios::out | std::ofstream::binary);
 
-    if (in_file.is_open())
-    {
+    if (in_file.is_open()) {
         // Salta a leitura para o início da área de diretórios
         in_file.seekg (0, std::ios::beg);
         in_file.seekg (4, std::ios::cur);
@@ -478,8 +439,7 @@ int list_files(const char *filename)
         // Lê uma string do arquivo tendo como caractere delimitador o \n
         std::getline(in_file, path, (char)0x0A);
         
-        while (1)
-        {
+        while (1) {
             if (path == DIR_NAME)
                 break;
             
@@ -488,9 +448,7 @@ int list_files(const char *filename)
 
             std::cout << "|";
             for (int i = 0 ; i < pos / 3; i++)
-            {
                 std::cout << "-";
-            }
 
             std::cout << " " << path.substr(pos + 1, path.size()) << std::endl;
             std::getline(in_file, path, (char)0x0A);
@@ -506,53 +464,38 @@ int list_files(const char *filename)
 ///////////////////////////////////////////////////////////////////////////////
 int check_args(int argc, char* argv[])
 {
-    if (argc == 3)
-    {
-        if (strcmp("-c", argv[1]) == 0)
-        {
+    if (argc == 3) {
+        if (strcmp("-c", argv[1]) == 0) {
             if (!is_dir(argv[2]))
-            {
                 return NOT_A_DIRECTORY;
-            }
-            else
-            {
+            else {
                 get_dir(argv[2]);
                 compress_files(argv[2]);
                 return SUCCESS;
             }
         }
 
-        else if (strcmp("-e", argv[1]) == 0)
-        {
+        else if (strcmp("-e", argv[1]) == 0) {
             if (!is_sar(argv[2]))
-            {
                 return  NOT_A_SAR_FILE;
-            }
-            else
-            {
+            else {
                 extract_files(argv[2]);
                 return SUCCESS;
             }
         }
 
-        else if (strcmp("-l", argv[1]) == 0)
-        {
+        else if (strcmp("-l", argv[1]) == 0) {
             if (!is_sar(argv[2]))
-            {
                 return  NOT_A_SAR_FILE;
-            }
-            else
-            {
+            else {
                 list_files(argv[2]);
                 return SUCCESS;
             }
         }
     }
 
-    if (argc == 2)
-    {
-        if ((strcmp("-h", argv[1]) == 0) || (strcmp("-a", argv[1]) == 0))
-        {
+    if (argc == 2) {
+        if ((strcmp("-h", argv[1]) == 0) || (strcmp("-a", argv[1]) == 0)) {
             std::cout << "Options:" << std::endl;
             //std::cout << "Opcoes:" << std::endl;
 
