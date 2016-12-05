@@ -12,38 +12,32 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <tchar.h>
 #endif // _WIN32
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// DEFINES
 ///////////////////////////////////////////////////////////////////////////////
-#define SUCCESS 0               // execução bem sucedida
-#define NOT_A_DIRECTORY 1       // argumento não é um diretório
-#define NOT_A_SAR_FILE 2        // argumento não é um arquivo sar válido
-#define FAILURE 3               // caso genérico para execução mal sucedida
+#define SUCCESS 0                   // execução bem sucedida
+#define NOT_A_DIRECTORY 1           // argumento não é um diretório
+#define NOT_A_SAR_FILE 2            // argumento não é um arquivo sar válido
+#define FAILURE 3                   // caso genérico para execução mal sucedida
 
-#define TRUE 1
-#define FALSE 0
+#define DIR_NAME "<!dir>"           // nome do arquivo
+#define BIN_AREA "<!bin>"           // arquivo compactado
+#define END_FILE "<!end>"           // final do arquivo sar
 
-#define DIR_NAME "<!dir>"
-#define BIN_AREA "<!bin>"
-#define END_FILE "<!end>"
-
-#define byte char
+#define byte char                   // tipo de dado byte é um char
 
 ///////////////////////////////////////////////////////////////////////////////
 /// GLOBAL DATA AREA
 ///////////////////////////////////////////////////////////////////////////////
-char current_directory[256];
-std::string work_directory;
+char current_directory[256];        // diretório do programa sar
+std::string work_directory;         // diretório do programa sar em string
 
-std::vector<std::string> path_list;
+std::vector<std::string> path_list; // lista de diretórios
 
-std::ifstream in_file;
-std::ofstream out_file;
+std::ifstream in_file;              // arquivo de entrada
+std::ofstream out_file;             // arquivo de saída
 
 ///////////////////////////////////////////////////////////////////////////////
 /// FUNCTIONS PROTOTYPES
@@ -83,7 +77,7 @@ int is_file(const char *path)
 int is_sar(const char *path)
 {
     if (is_dir(path))
-        return FALSE;
+        return false;
 
     in_file.open(path, std::ios::in | std::ofstream::binary);
     in_file.seekg (0, std::ios::beg);
@@ -93,10 +87,10 @@ int is_sar(const char *path)
     {
         getline(in_file, str);
         in_file.close();
-        return (str == "SAR") ? TRUE : FALSE;
+        return (str == "SAR") ? true : false;
     }
 
-    return FALSE;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -110,7 +104,7 @@ int get_dir(const char *path)
 
     dir = opendir(path);
     if (!dir)
-        return TRUE;
+        return true;
 
     while ((entry = readdir(dir)) != NULL)
     {
@@ -130,9 +124,12 @@ int get_dir(const char *path)
     }
 
     closedir(dir);
-    return FALSE;
+    return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// Create a directory
+///////////////////////////////////////////////////////////////////////////////
 int create_directory(std::string path)
 {
     int first = path.find_first_of("/");
@@ -152,7 +149,7 @@ int create_directory(std::string path)
         return create_directory(aux);
     }
 
-    return TRUE;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -225,10 +222,10 @@ int compress_files(const char *path)
 
         // std::cout << "Todos os arquivos foram compactados" << std::endl;
         std::cout << "All files were compressed" << std::endl;
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -446,7 +443,7 @@ int extract_files(const char *path)
     }
     //std::cout << "Todos os arquivos foram extraidos" << std::endl;
     std::cout << "All files have been extracted" << std::endl;
-    return FALSE;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -456,6 +453,7 @@ int list_files(const char *filename)
 {
     in_file.open(filename, std::ios::out | std::ofstream::binary);
 
+    std::cout << "." << std::endl;
     if (in_file.is_open())
     {
         in_file.seekg (0, std::ios::beg);
@@ -469,20 +467,41 @@ int list_files(const char *filename)
             if (path == DIR_NAME)
                 break;
             
-            int pos = path.find_last_of("/");
-
             std::cout << "|";
-            for (int i = 0 ; i < pos / 3; i++)
+
+            int pos = 0;
+            if ((pos = path.find("/", pos + 1)) != -1)
             {
-                std::cout << "-";
+                std::cout << "--";
             }
-            std::cout << " " << path.substr(pos + 1, path.size()) << std::endl;
+
+            while ((pos = path.find("/", pos + 1)) != -1)
+            {
+                std::cout << "---";
+            }
+
+            pos = path.find_last_of("/");
+
+            
+            // for (int i = 0 ; i < (pos / 4) - 1; i++)
+            // {
+            //     std::cout << "-";
+            // }
+
+            // std::cout << pos << ": ";
+            std::cout << " " << path.substr(pos + 1, path.size());
             std::getline(in_file, path, (char)0x0A);
+            if (path == DIR_NAME)
+            {
+                std::cout << "\r" << "+";//(char)192;
+            }
+
+            std::cout << std::endl;
         }
 
         in_file.close();
     }
-    return FALSE;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -558,7 +577,9 @@ int check_args(int argc, char* argv[])
         }
     }
 
+    //std::cout << "erro: faltando argumento" << std::endl;
     std::cout << "error: missing argument" << std::endl;
+    //std::cout << "execucao encerrada" << std::endl;
     std::cout << "execution terminated" << std::endl;
 
     return FAILURE;

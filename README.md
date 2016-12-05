@@ -1,4 +1,4 @@
-# **sar**
+# **sar - stream archive**
 ----
 
 #### **1. NAME**  
@@ -43,12 +43,8 @@ Os primeiros 4 bytes são o tipo do arquivo seguido de um caractere de fim de li
 
     !SAR
 
-Em seguida temos a primeira grande área onde encontramos a relação de diretórios e arquivos seguidos de uma tag de encerramento:
-
-    lista de diretórios
-    <dir!>  
-
-A segunda grande área contém os arquivos compactados, seguindo a estrutura abaixo e se repetindo para todos os aquivos:  
+Em seguida temos a primeira área de dados, onde encontramos a relação de diretórios e arquivos.  
+Na segunda área encontramos os arquivos compactados, seguindo a estrutura abaixo e se repetindo para todos os aquivos:  
 
     <!dir>  
     nome do arquivo  
