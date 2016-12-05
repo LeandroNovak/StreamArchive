@@ -41,9 +41,9 @@ Cada uma das tags representadas acima são, assim como a tag SAR, encerradas com
 
 Os primeiros 4 bytes são o tipo do arquivo seguido de um caractere de fim de linha  
 
-    !SAR
+    SAR
 
-Em seguida temos a primeira área de dados, onde encontramos a relação de diretórios e arquivos.  
+Em seguida temos a primeira área de dados, onde encontramos a relação de diretórios e arquivos separados por um caractere de fim de linha.
 Na segunda área encontramos os arquivos compactados, seguindo a estrutura abaixo e se repetindo para todos os aquivos:  
 
     <!dir>  
