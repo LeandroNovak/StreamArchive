@@ -76,8 +76,3 @@ No Linux:
 No Windows:  
 
     sar.exe [opção] [diretório ou arquivo]  
-
-#### **8. SEE ALSO**  
-tar(5)  
-
-
