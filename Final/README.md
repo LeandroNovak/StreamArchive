@@ -22,7 +22,7 @@ vez.
 O arquivo é organizado da seguinte forma:
 
 Os primeiros 4 bytes são o tipo do arquivo seguido de um caractere de
-fim de linha
+fim de linha.
 
     SAR\n  
 
