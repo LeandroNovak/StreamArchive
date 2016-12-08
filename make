@@ -1,1 +1,0 @@
-g++ -o sar sar.cpp

@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include <fstream>
 #include <cstring>
 #include <sys/types.h>
@@ -12,35 +11,37 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <tchar.h>
 #endif // _WIN32
 
 ///////////////////////////////////////////////////////////////////////////////
 /// DEFINES
 ///////////////////////////////////////////////////////////////////////////////
-#define SUCCESS 0                   // execução bem sucedida
-#define NOT_A_DIRECTORY 1           // argumento não é um diretório
-#define NOT_A_SAR_FILE 2            // argumento não é um arquivo sar válido
-#define FAILURE 3                   // caso genérico para execução mal sucedida
+#define SUCCESS 0               // execução bem sucedida
+#define NOT_A_DIRECTORY 1       // argumento não é um diretório
+#define NOT_A_SAR_FILE 2        // argumento não é um arquivo sar válido
+#define FAILURE 3               // caso genérico para execução mal sucedida
 
-#define DIR_NAME "<!dir>"           // nome do arquivo
-#define BIN_AREA "<!bin>"           // arquivo compactado
-#define END_FILE "<!end>"           // final do arquivo sar
+#define SAR_TAG "SAR"
+#define DIR_NAME "<!dir>"       // Tag de início do nome do diretório
+#define BIN_AREA "<!bin>"       // Tag de início da área de arquivo
+#define END_FILE "<!end>"       // Tag de fim de arquivo
 
-#define byte char                   // tipo de dado byte é um char
-
-///////////////////////////////////////////////////////////////////////////////
-/// GLOBAL DATA AREA
-///////////////////////////////////////////////////////////////////////////////
-char current_directory[256];        // diretório do programa sar
-std::string work_directory;         // diretório do programa sar em string
-
-std::vector<std::string> path_list; // lista de diretórios
-
-std::ifstream in_file;              // arquivo de entrada
-std::ofstream out_file;             // arquivo de saída
+#define byte char
 
 ///////////////////////////////////////////////////////////////////////////////
-/// FUNCTIONS PROTOTYPES
+/// VARIÁVEIS GLOBAIS
+///////////////////////////////////////////////////////////////////////////////
+char current_directory[256];        // Diretório atual em array de caracteres
+std::string work_directory;         // String do diretório atual
+
+std::vector<std::string> path_list; // Vector para a lista de diretórios
+
+std::ifstream in_file;              // Stream de entrada de arquivo
+std::ofstream out_file;             // Stream de saída de arquivo
+
+///////////////////////////////////////////////////////////////////////////////
+/// PROTÓTIPOS DAS FUNÇÕES
 ///////////////////////////////////////////////////////////////////////////////
 int is_dir(const char *path);
 int is_sar(const char *path);
@@ -52,7 +53,7 @@ int list_files(const char *filename);
 int check_args(int argc, char* argv[]);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Returns true if the path is a directory, otherwise returns false
+// Retorna verdadeiro se o caminho é um diretório, senão, retorna falso
 ///////////////////////////////////////////////////////////////////////////////
 int is_dir(const char *path)
 {
@@ -62,7 +63,7 @@ int is_dir(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Returns true if the path is a file, otherwise returns false
+// Retorna verdadeiro se o caminho é um arquivo, senão, retorna falso
 ///////////////////////////////////////////////////////////////////////////////
 int is_file(const char *path)
 {
@@ -72,7 +73,7 @@ int is_file(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Returns true if the file is a sar file, otherwise returns false
+/// Retorna verdadeiro se o arquivo é um arquivo sar, senão, retorna falso
 ///////////////////////////////////////////////////////////////////////////////
 int is_sar(const char *path)
 {
@@ -83,18 +84,17 @@ int is_sar(const char *path)
     in_file.seekg (0, std::ios::beg);
     std::string str;
 
-    if (in_file.is_open())
-    {
+    if (in_file.is_open()) {
         getline(in_file, str);
         in_file.close();
-        return (str == "SAR") ? true : false;
+        return (str == SAR_TAG) ? true : false;
     }
 
     return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Generates the directories list and saves them
+/// Gera a lista de diretórios e salva ela em path_list
 ///////////////////////////////////////////////////////////////////////////////
 int get_dir(const char *path)
 {
@@ -103,21 +103,24 @@ int get_dir(const char *path)
     struct stat info;
 
     dir = opendir(path);
+
+    // se dir for null
     if (!dir)
         return true;
 
-    while ((entry = readdir(dir)) != NULL)
-    {
-        if (entry->d_name[0] != '.')
-        {
+    // enquanto houverem diretórios a serem lidos
+    while ((entry = readdir(dir)) != NULL) {
+        // se o diretório lido não for o atual, nem o diretório pai
+        if (entry->d_name[0] != '.') {
             std::string newpath = std::string(path) + "/" + std::string(entry->d_name);
 
+            // salva o diretório
             path_list.push_back(newpath);
 
             stat(newpath.c_str(), &info);
 
-            if (S_ISDIR(info.st_mode))
-            {
+            if (S_ISDIR(info.st_mode)) {
+                // busca o próximo recursivamente
                 get_dir((char *)newpath.c_str());
             }
         }
@@ -128,14 +131,14 @@ int get_dir(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Create a directory
+/// Cria um diretório no caminho passado como string
 ///////////////////////////////////////////////////////////////////////////////
 int create_directory(std::string path)
 {
     int first = path.find_first_of("/");
 
-    if (first != -1)
-    {
+    // Se não houver uma '/' na string, todos os diretórios já foram criados
+    if (first != -1) {
         std::string aux = path.substr(first + 1, path.size());
         std::string dir = path.substr(0, first);
         work_directory.append("/" + dir);
@@ -146,6 +149,7 @@ int create_directory(std::string path)
         mkdir(work_directory.c_str(), ACCESSPERMS);
         #endif // _WIN32
 
+        // Chama recursivamente para criar o proximo subdiretório
         return create_directory(aux);
     }
 
@@ -153,7 +157,7 @@ int create_directory(std::string path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// compresses the files in a new sar file
+/// Comprime os arquivos em um novo arquivo sar
 ///////////////////////////////////////////////////////////////////////////////
 int compress_files(const char *path)
 {
@@ -161,66 +165,60 @@ int compress_files(const char *path)
     int begin = filename.find_last_of("/");
     int end = filename.size();
 
+    // Obtém o nome da pasta a ser comprimida para o nome do arquivo sar
     if (begin != -1 && begin != end - 1)
         filename = filename.substr(begin + 1, end - begin);
     else if (begin == end - 1)
         filename = filename.substr(0, begin);
 
+    // Adiciona a extensão
     filename.append(".sar");
+
     out_file.open(filename.c_str(), std::ios::out | std::ofstream::binary);
 
-    if (out_file.is_open())
-    {
-        out_file << "SAR" << std::endl;
+    if (out_file.is_open()) {
+        // Adiciona o cabeçalho identificador de arquivo sar
+        out_file << SAR_TAG << std::endl;
 
         for (std::vector<std::string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-        {
             out_file << *i << "\n";
-        }
-
-        // string teste;
-        // for (int i = 0; i < path_list.size(); i++)
-        // {
-        //     teste = path_list[i];
-        //     out_file.write(teste, teste.size());
-        //     out_file
-        //     std::cout << i << ": " << path_list[i] << std::endl; 
-        // }
-
-        //std::cout << "Compactando arquivos" << std::endl;
+        
         std::cout << "Compressing files" << std::endl;
-        for (std::vector<std::string>::const_iterator i = path_list.begin(); i != path_list.end(); i++)
-        {
+        
+        for (std::vector<std::string>::const_iterator i = path_list.begin(); i != path_list.end(); i++) {
             filename = *i;
-            if (!is_dir(filename.c_str()))
-            {
+            if (!is_dir(filename.c_str())) {
+                // Adiciona a tag de nome de diretório
                 out_file << DIR_NAME << "\n";
+                // O nome do diretório
                 out_file << filename << "\n";
+                // E a tag de conteúdo do arquivo
                 out_file << BIN_AREA << "\n";
 
                 in_file.open(filename.c_str(), std::ios::in | std::ofstream::binary);
 
-                if (in_file.is_open())
-                {
+                // Lê byte a byte dando copiando do arquivo original para o novo arquivo
+                if (in_file.is_open()) {
                     in_file.seekg (0, std::ios::beg);
                     byte data[1];
 
                     in_file.read(data, sizeof(data));
-                    while(!in_file.eof())
-                    {
+
+                    while(!in_file.eof()) {
                         out_file.write(data, sizeof(data));
                         in_file.read(data, sizeof(data));
                     }
+
                     in_file.close();
                 }
 
             }
         }
+        // Insere a tag de encerramento do arquivo sar
         out_file << END_FILE << "\n";
 
         out_file.close();
 
-        // std::cout << "Todos os arquivos foram compactados" << std::endl;
         std::cout << "All files were compressed" << std::endl;
         return true;
     }
@@ -229,35 +227,29 @@ int compress_files(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// extract files from sar file
+/// Extrai os arquivos do arquivo sar
 ///////////////////////////////////////////////////////////////////////////////
 int extract_files(const char *path)
 {
     std::string filename(path);
     in_file.open(path, std::ios::in | std::ofstream::binary);
 
-    if (in_file.is_open())
-    {
+    if (in_file.is_open()) {
+        // Move o ponteiro de leitura de arquivo para o início da área de diretórios
         in_file.seekg (0, std::ios::beg);
         in_file.seekg (4, std::ios::cur);
 
         byte data[1];
         byte data_aux[6];
 
-        // Go to begin of file area
-        while (1)
-        {
-            //in_file >> filename;
-            getline(in_file, filename);
-
+        // Busca a área de arquivos
+        while (1) {
+            std::getline(in_file, filename, (char)0x0A);
             if (filename == DIR_NAME)
                 break;
         }
 
-        // File area
-        while (1)
-        {
-            //in_file >> filename;
+        while (1) {
             getline(in_file, filename);
 
             std::string temp(current_directory);
@@ -266,61 +258,57 @@ int extract_files(const char *path)
 
             out_file.open(filename.c_str(), std::ios::out | std::ofstream::binary);
 
-            if (out_file.is_open())
-            {
-                //std::cout << "Extraindo arquivos" << std::endl;
+            if (out_file.is_open()) {
                 std::cout << "Extracting files" << std::endl;
-                in_file >> filename;                // read <!bin>
-                in_file.read(data, sizeof(data));   //Remove \n after <!bin>
-                while(1)
-                {
+
+                // Lê o <!bin> e o \n depois dele
+                in_file >> filename;
+                in_file.read(data, sizeof(data));   
+                
+                while(1) {
                     in_file.read(data, sizeof(data));
-                    if (data[0] == '<')
-                    {
+
+                    // Ao encontrar um caractere identificador, verifica se a sequência bate com a de alguma tag
+                    if (data[0] == '<') {
                         in_file.read(&data_aux[0], 1);
 
-                        if (data_aux[0] == '!')
-                        {
+                        if (data_aux[0] == '!') {
                             in_file.read(&data_aux[1], 1);
 
-                            if (data_aux[1] == 'd')
-                            {
+                            if (data_aux[1] == 'd') {
                                 in_file.read(&data_aux[2], 1);
 
-                                if (data_aux[2] == 'i')
-                                {
+                                if (data_aux[2] == 'i') {
                                     in_file.read(&data_aux[3], 1);
 
-                                    if (data_aux[3] == 'r')
-                                    {
+                                    if (data_aux[3] == 'r') {
                                         in_file.read(&data_aux[4], 1);
-                                        if (data_aux[4] == '>')
-                                        {
+
+                                        if (data_aux[4] == '>') {
                                             in_file.read(&data_aux[5], 1);
 
-                                            if (data_aux[5] == '\n')
-                                            {
+                                            // Se a tag lida for a indicadora de nome de um novo arquivo
+                                            if (data_aux[5] == '\n') {
                                                 getline(in_file, filename);
+
+                                                // Cria o diretório para armazenar este arquivo
                                                 std::string temp(current_directory);
                                                 work_directory = temp;
                                                 create_directory(filename);
+
                                                 out_file.close();
 
                                                 out_file.open(filename.c_str(), std::ios::out | std::ofstream::binary);
 
-                                                if (in_file.is_open())
-                                                {
-                                                    in_file >> filename;                //Read <!bin>
-                                                    in_file.read(data, sizeof(data));   //Remove \n after <!bin>
-                                                }
+                                                if (in_file.is_open()) {
+                                                    // Lê o <!bin> e o \n depois dele
+                                                    in_file >> filename;
+                                                    in_file.read(data, sizeof(data));
+                                                } 
                                                 else
-                                                {
                                                     break;
-                                                }
-
-                                            }
-                                            else
-                                            {
+                                            } 
+                                            else {
                                                 out_file.write(data, 1);
                                                 out_file.write(&data_aux[0], 1);
                                                 out_file.write(&data_aux[1], 1);
@@ -330,8 +318,7 @@ int extract_files(const char *path)
                                                 out_file.write(&data_aux[5], 1);
                                             }
                                         }
-                                        else
-                                        {
+                                        else {
                                             out_file.write(data, 1);
                                             out_file.write(&data_aux[0], 1);
                                             out_file.write(&data_aux[1], 1);
@@ -340,8 +327,7 @@ int extract_files(const char *path)
                                             out_file.write(&data_aux[4], 1);
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         out_file.write(data, 1);
                                         out_file.write(&data_aux[0], 1);
                                         out_file.write(&data_aux[1], 1);
@@ -349,8 +335,7 @@ int extract_files(const char *path)
                                         out_file.write(&data_aux[3], 1);
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     out_file.write(data, 1);
                                     out_file.write(&data_aux[0], 1);
                                     out_file.write(&data_aux[1], 1);
@@ -358,28 +343,28 @@ int extract_files(const char *path)
                                 }
                             }
 
-                            else if (data_aux[1] == 'e')
-                            {
+                            else if (data_aux[1] == 'e') {
                                 in_file.read(&data_aux[2], 1);
 
-                                if (data_aux[2] == 'n')
-                                {
+                                if (data_aux[2] == 'n') {
                                     in_file.read(&data_aux[3], 1);
 
-                                    if (data_aux[3] == 'd')
-                                    {
+                                    if (data_aux[3] == 'd') {
                                         in_file.read(&data_aux[4], 1);
-                                        if (data_aux[4] == '>')
-                                        {
+
+                                        if (data_aux[4] == '>') {
                                             in_file.read(&data_aux[5], 1);
 
-                                            if (data_aux[5] == '\n')
-                                            {
+                                            // Caso a tag seja de final do arquivo sar, encerra-se a descompressão
+                                            if (data_aux[5] == '\n') {
                                                 in_file.close();
+                                                out_file.close();
+
+                                                std::cout << "All files have been extracted" << std::endl;
+                                                return true;
                                                 break;
                                             }
-                                            else
-                                            {
+                                            else {
                                                 out_file.write(data, 1);
                                                 out_file.write(&data_aux[0], 1);
                                                 out_file.write(&data_aux[1], 1);
@@ -389,8 +374,7 @@ int extract_files(const char *path)
                                                 out_file.write(&data_aux[5], 1);
                                             }
                                         }
-                                        else
-                                        {
+                                        else {
                                             out_file.write(data, 1);
                                             out_file.write(&data_aux[0], 1);
                                             out_file.write(&data_aux[1], 1);
@@ -399,8 +383,7 @@ int extract_files(const char *path)
                                             out_file.write(&data_aux[4], 1);
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         out_file.write(data, 1);
                                         out_file.write(&data_aux[0], 1);
                                         out_file.write(&data_aux[1], 1);
@@ -408,95 +391,65 @@ int extract_files(const char *path)
                                         out_file.write(&data_aux[3], 1);
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     out_file.write(data, 1);
                                     out_file.write(&data_aux[0], 1);
                                     out_file.write(&data_aux[1], 1);
                                     out_file.write(&data_aux[2], 1);
                                 }
                             }
-
-                            else
-                            {
+                            else {
                                 out_file.write(data, 1);
                                 out_file.write(&data_aux[0], 1);
                                 out_file.write(&data_aux[1], 1);
                             }
                         }
-                        else
-                        {
+                        else {
                             out_file.write(data, 1);
                             out_file.write(&data_aux[0], 1);
                         }
                     }
-
                     else
-                    {
                         out_file.write(data, 1);
-                    }
                 }
                 out_file.close();
             }
-            break;
         }
     }
-    //std::cout << "Todos os arquivos foram extraidos" << std::endl;
-    std::cout << "All files have been extracted" << std::endl;
     return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// list the files within the sar file
+/// Lista os arquivos e diretórios compactados
 ///////////////////////////////////////////////////////////////////////////////
 int list_files(const char *filename)
 {
     in_file.open(filename, std::ios::out | std::ofstream::binary);
 
-    std::cout << "." << std::endl;
-    if (in_file.is_open())
-    {
+    if (in_file.is_open()) {
+        // Salta a leitura para o início da área de diretórios
         in_file.seekg (0, std::ios::beg);
         in_file.seekg (4, std::ios::cur);
         std::string path;
 
+        // Lê uma string do arquivo tendo como caractere delimitador o \n
         std::getline(in_file, path, (char)0x0A);
         
-        while (1)
-        {
+        // Indicador de diretório pai
+        std::cout << "." << std::endl; 
+        while (1) {
             if (path == DIR_NAME)
                 break;
             
+            // Imprime a lista de diretórios de forma estruturada com base em seu caminho
+            int pos = path.find_last_of("/");
+
             std::cout << "|";
+            for (int i = 0 ; i < pos / 3; i++)
+                std::cout << "-";
 
-            int pos = 0;
-            if ((pos = path.find("/", pos + 1)) != -1)
-            {
-                std::cout << "--";
-            }
-
-            while ((pos = path.find("/", pos + 1)) != -1)
-            {
-                std::cout << "---";
-            }
-
-            pos = path.find_last_of("/");
-
-            
-            // for (int i = 0 ; i < (pos / 4) - 1; i++)
-            // {
-            //     std::cout << "-";
-            // }
-
-            // std::cout << pos << ": ";
-            std::cout << " " << path.substr(pos + 1, path.size());
+            std::cout << " " << path.substr(pos + 1, path.size()) << std::endl;
             std::getline(in_file, path, (char)0x0A);
-            if (path == DIR_NAME)
-            {
-                std::cout << "\r" << "+";//(char)192;
-            }
-
-            std::cout << std::endl;
         }
 
         in_file.close();
@@ -509,85 +462,65 @@ int list_files(const char *filename)
 ///////////////////////////////////////////////////////////////////////////////
 int check_args(int argc, char* argv[])
 {
-    if (argc == 3)
-    {
-        if (strcmp("-c", argv[1]) == 0)
-        {
+    if (argc == 3) {
+        // para o argumento -c
+        if (strcmp("-c", argv[1]) == 0) {
             if (!is_dir(argv[2]))
-            {
                 return NOT_A_DIRECTORY;
-            }
-            else
-            {
+            else {
                 get_dir(argv[2]);
                 compress_files(argv[2]);
                 return SUCCESS;
             }
         }
 
-        else if (strcmp("-e", argv[1]) == 0)
-        {
+        // para o argumento -e
+        else if (strcmp("-e", argv[1]) == 0) {
             if (!is_sar(argv[2]))
-            {
                 return  NOT_A_SAR_FILE;
-            }
-            else
-            {
+            else {
                 extract_files(argv[2]);
                 return SUCCESS;
             }
         }
 
-        else if (strcmp("-l", argv[1]) == 0)
-        {
+        // para o argumento -l
+        else if (strcmp("-l", argv[1]) == 0) {
             if (!is_sar(argv[2]))
-            {
                 return  NOT_A_SAR_FILE;
-            }
-            else
-            {
+            else {
                 list_files(argv[2]);
                 return SUCCESS;
             }
         }
     }
 
-    if (argc == 2)
-    {
-        if ((strcmp("-h", argv[1]) == 0) || (strcmp("-a", argv[1]) == 0))
-        {
+    if (argc == 2) {
+        if ((strcmp("-h", argv[1]) == 0) || (strcmp("-a", argv[1]) == 0)) {
             std::cout << "Options:" << std::endl;
-            //std::cout << "Opcoes:" << std::endl;
 
             #ifdef _WIN32
             std::cout << "Usage: sar.exe [option] file" << std::endl;
-            //std::cout << "Modo de uso: sar.exe [opcao] [arquivo ou diretorio]" << std::endl;
             #else
             std::cout << "Usage: sar [option] file" << std::endl;
-            //std::cout << "Modo de uso: sar [opcao] [arquivo ou diretorio]" << std::endl;
             #endif // _WIN32
 
-            //std::cout << "    -c          Comprime o diretorio em um novo arquivo sar" << std::endl;
             std::cout << "    -c          Compress the directory into a new sar file" << std::endl;
-            //std::cout << "    -e          Extrai o arquivo sar no diretorio atual" << std::endl;
             std::cout << "    -e          Extract the sar file in the current directory" << std::endl;
-            //std::cout << "    -l          Lista todos os arquivo compactados em um arquivo sar" << std::endl;
             std::cout << "    -l          List all compressed files in a sar file" << std::endl;
             return SUCCESS;
         }
     }
 
-    //std::cout << "erro: faltando argumento" << std::endl;
     std::cout << "error: missing argument" << std::endl;
-    //std::cout << "execucao encerrada" << std::endl;
     std::cout << "execution terminated" << std::endl;
 
     return FAILURE;
 }
 
-//int main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
+    // Salva o diretório onde foi executado o arquivo sar
 	getcwd(current_directory, sizeof(current_directory));
 	return check_args(argc, argv);
 }
