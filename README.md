@@ -76,3 +76,7 @@ No Linux:
 No Windows:  
 
     sar.exe [opção] [diretório ou arquivo]  
+
+#### **8. TO DO**  
+
+Translate README, comments and change the tags.
