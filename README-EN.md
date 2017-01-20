@@ -14,20 +14,20 @@ sar - create and extract a directory structure in a file
 
 **_-c directory_**  
 
-Com a opção -c, especifica-se um diretório e o programa cria um arquivo chamado nome.sar, contendo todos os arquivos e sub-diretórios contidos no diretório indicado.  
+With the -c option, specifies a directory and the program creates one file called name.sar, containing all the files and sub-directories contained on the indicated directory.  
 
 **_-e sar_file_**  
 
-The option -e indicates a file extraction and, in that case, a file with the .sar extension is indicated as argument.
-The entire hierarchy of directories and files contained in the .sar file is extracted.
+The -e option indicates a file extraction and, in that case, a file with the .sar extension is indicated as argument.
+The entire hierarchy of directories and files contained in the .sar file is extracted.  
 
 **_-l sar_file_**  
 
-The listing option, indicated by -l, receives a file with .sar extension and shows in the screen the entire hierarchy of directories and files contained in the .sar file.
+The listing option, indicated by -l, receives a file with .sar extension and shows in the screen the entire hierarchy of directories and files contained in the .sar file.  
 
 #### **4. RETURN CODES**  
     
-Sar produces the following return values: 
+Sar produces the following return values:  
 
     0: successful execution 
     1: the argument passed in the criation is not a directory 
@@ -35,47 +35,44 @@ Sar produces the following return values:
 
 #### **5. SAR FILE STRUCTURE**  
 
-O arquivo sar é composto por 
-Cada uma das tags representadas acima são, assim como a tag SAR, encerradas com o caractere de fim de linha.  
-
-Os primeiros 4 bytes são o tipo do arquivo seguido de um caractere de fim de linha  
+The first 4 bytes are the file type followed by an end-of-line character.  
 
     SAR
 
-Em seguida temos a primeira área de dados, onde encontramos a relação de diretórios e arquivos separados por um caractere de fim de linha.
-Na segunda área encontramos os arquivos compactados, seguindo a estrutura abaixo e se repetindo para todos os aquivos:  
+Then whe have the first data area, where we find the relation of files and directories separated by an end-of-file character.
+In the second area we find the compressed files, following the structure below and repeating for all files:  
 
     <!dir>  
-    nome do arquivo  
+    file name  
     <!bin>  
-    conteúdo do arquivo  
+    file content 
 
-E por último o final do arquivo é indicado pela tag de encerramento:  
+And finally the end of the file is indicated by the closure tag:    
 
     <!end>  
 
 #### **6. COMPILE**  
 
-Tanto no Linux quanto no Windows a compilação é feita pelo g++ (MinGW no Windows).  
+Both in Linux and Windows the compilation is done by g++ (MinGW in Windows).  
 
-No Linux:  
+On Linux:  
 
     g++ -o sar sar.cpp  
 
-No Windows:  
+On Windows:  
 
     g++ -o sar sar.cpp -static-libstdc++  
 
 #### **7. RUN**  
 
-No Linux:  
+On Linux:  
 
-    ./sar [opção] [diretório ou arquivo]  
+    ./sar [option] [directory or file]  
 
-No Windows:  
+On Windows:  
 
-    sar.exe [opção] [diretório ou arquivo]  
+    sar.exe [option] [directory or file]   
 
 #### **8. TO DO**  
 
-Translate README, comments and change the tags.
+Translate comments and change the tags.
