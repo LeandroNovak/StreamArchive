@@ -75,6 +75,6 @@ On Windows:
 
 #### **8. TO DO**  
 
-[x] Translate README  
-[] Translate comments  
-[] Change bounding tags  
+[X] Translate README  
+[ ] Translate comments  
+[ ] Change bounding tags  
