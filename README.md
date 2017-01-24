@@ -75,4 +75,6 @@ On Windows:
 
 #### **8. TO DO**  
 
-Translate comments and change the tags.
+[x] Translate README  
+[] Translate comments  
+[] Change bounding tags  
