@@ -76,4 +76,6 @@ No Windows:
 
 #### **8. TO DO**  
 
-Traduzir comentários e alterar as tags.  
+- [x] Traduzir README
+- [ ] Traduzir comentários
+- [ ] Trocar as tags delimitadoras
