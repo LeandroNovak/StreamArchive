@@ -1,16 +1,16 @@
 # **sar - stream archive**
 ----
 
-#### **1. NAME**  
+#### **1. NOME**  
 
 sar - cria e extrai uma estrutura de diretórios em um arquivo  
 
-#### **2. SYNOPSIS**
+#### **2. RESUMO**
 
     sar -c diretório  
     sar [-e|-l] arquivo_sar  
 
-#### **3. DESCRIPTION**  
+#### **3. DESCRIÇÃO**  
 
 **_-c diretório_**  
 
@@ -25,7 +25,7 @@ Toda a hierarquia de diretórios e arquivos contidos no arquivo são extraídos.
 
 A opção de listagem, indicada por -l, usa um arquivo com extensão .sar e apresenta na tela toda a hierarquia de diretórios e arquivos contidos no arquivo .sar.  
 
-#### **4. RETURN CODES**  
+#### **4. VALORES DE RETORNO**  
     
 Sar produz os seguintes valores de retorno:  
 
@@ -34,7 +34,7 @@ Sar produz os seguintes valores de retorno:
     2: o argumento passado na listagem ou extração não é um arquivo .sar válido  
 
 
-#### **5. SAR FILE STRUCTURE**  
+#### **5. ESTRUTURA DO ARQUIVO SAR**  
 
 Os primeiros 4 bytes são o tipo do arquivo seguido de um caractere de fim de linha  
 
@@ -52,7 +52,7 @@ E por último o final do arquivo é indicado pela tag de encerramento:
 
     <!end>  
 
-#### **6. COMPILE**  
+#### **6. COMPILAR**  
 
 Tanto no Linux quanto no Windows a compilação é feita pelo g++ (MinGW no Windows).  
 
@@ -64,7 +64,7 @@ No Windows:
 
     g++ -o sar sar.cpp -static-libstdc++  
 
-#### **7. RUN**  
+#### **7. EXECUTAR**  
 
 No Linux:  
 
