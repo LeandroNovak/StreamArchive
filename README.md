@@ -1,5 +1,4 @@
 # **sar - stream archive**
-----
 
 #### **1. NAME**  
 
@@ -78,3 +77,5 @@ On Windows:
 - [x] Translate README  
 - [ ] Translate comments  
 - [ ] Change bounding tags  
+
+--- 
