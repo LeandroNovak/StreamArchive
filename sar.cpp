@@ -15,33 +15,33 @@
 #endif // _WIN32
 
 ///////////////////////////////////////////////////////////////////////////////
-/// DEFINES
+/// DEFINITIONS
 ///////////////////////////////////////////////////////////////////////////////
-#define SUCCESS 0               // execução bem sucedida
-#define NOT_A_DIRECTORY 1       // argumento não é um diretório
-#define NOT_A_SAR_FILE 2        // argumento não é um arquivo sar válido
-#define FAILURE 3               // caso genérico para execução mal sucedida
+#define SUCCESS 0               // successfull execution
+#define NOT_A_DIRECTORY 1       // argument is not a directory
+#define NOT_A_SAR_FILE 2        // argument is not a valid sar file
+#define FAILURE 3               // code for generic errors
 
 #define SAR_TAG "SAR"
-#define DIR_NAME "<!dir>"       // Tag de início do nome do diretório
-#define BIN_AREA "<!bin>"       // Tag de início da área de arquivo
-#define END_FILE "<!end>"       // Tag de fim de arquivo
+#define DIR_NAME "<!dir>"       // Tag of begin of directory
+#define BIN_AREA "<!bin>"       // Tag of begin of file area
+#define END_FILE "<!end>"       // Tag of end of file
 
 #define byte char
 
 ///////////////////////////////////////////////////////////////////////////////
-/// VARIÁVEIS GLOBAIS
+/// GLOBAL VARIABLES
 ///////////////////////////////////////////////////////////////////////////////
-char current_directory[256];        // Diretório atual em array de caracteres
-std::string work_directory;         // String do diretório atual
+char current_directory[256];        // Current directory saved in a char array
+std::string work_directory;         // Current directory saved in a string
 
-std::vector<std::string> path_list; // Vector para a lista de diretórios
+std::vector<std::string> path_list; // Vector to directories list
 
-std::ifstream in_file;              // Stream de entrada de arquivo
-std::ofstream out_file;             // Stream de saída de arquivo
+std::ifstream in_file;              // Input stream of files
+std::ofstream out_file;             // Output stream of files
 
 ///////////////////////////////////////////////////////////////////////////////
-/// PROTÓTIPOS DAS FUNÇÕES
+/// FUNCTIONS PROTOTYPES
 ///////////////////////////////////////////////////////////////////////////////
 int is_dir(const char *path);
 int is_sar(const char *path);
@@ -53,7 +53,7 @@ int list_files(const char *filename);
 int check_args(int argc, char* argv[]);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Retorna verdadeiro se o caminho é um diretório, senão, retorna falso
+// Returns true if the path is a directory
 ///////////////////////////////////////////////////////////////////////////////
 int is_dir(const char *path)
 {
@@ -63,7 +63,7 @@ int is_dir(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Retorna verdadeiro se o caminho é um arquivo, senão, retorna falso
+// Returns true if the path is a file
 ///////////////////////////////////////////////////////////////////////////////
 int is_file(const char *path)
 {
@@ -73,7 +73,7 @@ int is_file(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Retorna verdadeiro se o arquivo é um arquivo sar, senão, retorna falso
+/// Returns true if the file is a SAR file
 ///////////////////////////////////////////////////////////////////////////////
 int is_sar(const char *path)
 {
@@ -95,7 +95,7 @@ int is_sar(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Gera a lista de diretórios e salva ela em path_list
+/// Generates the path list and saves into path_list
 ///////////////////////////////////////////////////////////////////////////////
 int get_dir(const char *path)
 {
@@ -135,13 +135,13 @@ int get_dir(const char *path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Cria um diretório no caminho passado como string
+/// Creates a directory in the given path
 ///////////////////////////////////////////////////////////////////////////////
 int create_directory(std::string path)
 {
     int first = path.find_first_of("/");
 
-    // Se não houver uma '/' na string, todos os diretórios já foram criados
+    // If the string doesn't contains an '/', all the directories where created
     if (first != -1) 
     {
         std::string aux = path.substr(first + 1, path.size());
@@ -154,7 +154,7 @@ int create_directory(std::string path)
         mkdir(work_directory.c_str(), ACCESSPERMS);
         #endif // _WIN32
 
-        // Chama recursivamente para criar o proximo subdiretório
+	// Calls itself recursively to create the next subdirectory
         return create_directory(aux);
     }
 
@@ -162,7 +162,7 @@ int create_directory(std::string path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Comprime os arquivos em um novo arquivo sar
+/// Archieve the files in a new SAR file
 ///////////////////////////////////////////////////////////////////////////////
 int compress_files(const char *path)
 {
